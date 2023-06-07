@@ -37,6 +37,7 @@ pub enum PartFn {
     U8(fn(&str) -> u8),
     String(fn(&str) -> String),
     Str(fn(&str) -> &str),
+    Bites8(fn(&str) -> [u8; 8]),
 }
 impl PartFn {
     fn call(&self, input: &str) -> String {
@@ -53,6 +54,7 @@ impl PartFn {
             PartFn::U8(f) => (f)(input).to_string(),
             PartFn::String(f) => (f)(input),
             PartFn::Str(f) => (f)(input).to_string(),
+            PartFn::Bites8(f) => String::from_utf8(Vec::from(f(input))),
         }
     }
     fn time(&self, input: &str, reps: u32) -> Duration {
@@ -141,6 +143,13 @@ impl PartFn {
                 }
                 s.elapsed()
             }
+            PartFn::Bites8(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
         }) / reps
     }
 }
@@ -203,6 +212,11 @@ impl From<fn(&str) -> String> for PartFn {
 impl From<fn(&str) -> &str> for PartFn {
     fn from(value: fn(&str) -> &str) -> Self {
         PartFn::Str(value)
+    }
+}
+impl From<fn(&str) -> [u8; 8]> for PartFn {
+    fn from(value: fn(&str) -> [u8; 8]) -> Self {
+        PartFn::Bites8(value)
     }
 }
 
