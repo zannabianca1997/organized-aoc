@@ -1,0 +1,3 @@
+[workspace]
+members = ["library", "manager", "runner"]
+exclude = ["skel"]
