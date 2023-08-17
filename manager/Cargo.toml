@@ -6,3 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.75"
+cargo-manifest = "0.9.0"
+clap = { version = "4.3.21", features = ["derive"] }
+indenter = "0.3.3"
+log = "0.4.20"
+pathdiff = "0.2.1"
+prettyplease = "0.2.12"
+proc-macro2 = "1.0.66"
+quote = "1.0.33"
+serde = { version = "1.0.183", features = ["derive"] }
+simple_logger = "4.2.0"
+syn = "2.0.29"
+toml = "0.7.6"
