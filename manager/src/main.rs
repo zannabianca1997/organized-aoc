@@ -60,7 +60,7 @@ fn main() -> anyhow::Result<()> {
 
     setup_logger(verbosity)?;
 
-    let solutions = visit_solutions(solutions).context("Cannot read solution directory")?;
+    let mut solutions = visit_solutions(solutions).context("Cannot read solution directory")?;
 
     match command.unwrap_or_default() {
         Command::Init {
@@ -68,7 +68,7 @@ fn main() -> anyhow::Result<()> {
             day,
             do_not_update,
         } => {
-            init(&solutions, year, day).context("Cannot init day")?;
+            init(&mut solutions, year, day).context("Cannot init day")?;
             if !do_not_update {
                 update(&solutions, library).context("Cannot update library")?;
             }
@@ -196,7 +196,7 @@ fn visit_solutions(solutions: PathBuf) -> anyhow::Result<Solutions> {
     })
 }
 
-fn init(solutions: &Solutions, year: u16, day: u8) -> anyhow::Result<()> {
+fn init(solutions: &mut Solutions, year: u16, day: u8) -> anyhow::Result<()> {
     if solutions
         .years
         .get(&year)
@@ -224,7 +224,7 @@ fn init(solutions: &Solutions, year: u16, day: u8) -> anyhow::Result<()> {
             version = "0.1.0"
             edition = "2021"
 
-            [package.metadata.aoc]
+            [package.metadata]
             part1 = "part1"
 
             [dependencies]
@@ -254,6 +254,23 @@ fn init(solutions: &Solutions, year: u16, day: u8) -> anyhow::Result<()> {
 
         fs::write(src.join("lib.rs"), lib_rs)?;
     }
+
+    solutions
+        .years
+        .entry(year)
+        .or_insert_with(|| Year {
+            days: BTreeMap::new(),
+        })
+        .days
+        .insert(
+            day,
+            SolutionMetas {
+                path,
+                part1: Some(syn::Path::from(format_ident!("part1"))),
+                part2: None,
+            },
+        )
+        .and_then::<(), _>(|_| unreachable!());
 
     Ok(())
 }

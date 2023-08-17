@@ -1,0 +1,9 @@
+[package]
+name = "aoc_2015_1"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata]
+part1 = "part1"
+
+[dependencies]
