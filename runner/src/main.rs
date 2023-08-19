@@ -3,8 +3,6 @@
 #![feature(string_leak)]
 
 use std::{
-    borrow::Cow,
-    cell::OnceCell,
     collections::BTreeMap,
     fmt::Display,
     fs::{self, File},
@@ -12,12 +10,12 @@ use std::{
     panic::catch_unwind,
     path::{Path, PathBuf},
     str::FromStr,
-    sync::{Arc, Mutex},
-    time::{self, Duration, Instant},
+    sync::Mutex,
+    time::{Duration, Instant},
 };
 
 use anyhow::{bail, Context};
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
@@ -36,7 +34,7 @@ struct Cli {
     /// File for the correct answers, for checking
     #[clap(short, long)]
     answers: Option<PathBuf>,
-    /// Baseline for caching/checking times and answers [default if no value is given: ./baseline.json]
+    /// Baseline for caching/checking times and answers [default: ./baseline.json]
     #[clap(short, long)]
     baseline: Option<Option<PathBuf>>,
     /// Save new baseline for caching/checking times and answers [default if no value is given: --baseline value or ./baseline.json]
@@ -315,11 +313,13 @@ fn main() -> anyhow::Result<()> {
         sb.or(baseline.clone())
             .unwrap_or(DEFAULT_BASELINE_FILE.clone())
     });
-    let mut baseline = baseline
-        .map(read_baselines)
-        .transpose()
-        .context("Cannot read baseline database")?
-        .unwrap_or_default();
+    let mut baseline = if let Some(baseline) = baseline {
+        read_baselines(baseline).context("Cannot read baseline")?
+    } else if let Ok(baseline) = read_baselines(&*DEFAULT_BASELINE_FILE) {
+        baseline
+    } else {
+        Default::default()
+    };
 
     let mut results = vec![];
     for (year, days) in library {
@@ -436,8 +436,6 @@ fn filter_library(filter: &Filter, library: SolutionsLibrary) -> SolutionsLibrar
     log::info!("Filtered solution parts: {filtered}");
     res
 }
-
-type InputsLibrary = BTreeMap<u16, BTreeMap<u8, String>>;
 
 fn read_input(inputs: &Path, year: u16, day: u8) -> anyhow::Result<&'static str> {
     static INPUT: Mutex<BTreeMap<u16, BTreeMap<u8, Result<&'static str, &'static io::Error>>>> =
@@ -581,7 +579,6 @@ struct Showing {
     answers: bool,
     times: bool,
     prev_times: bool,
-    time_diff: bool,
     correct: bool,
     was_correct: bool,
 }
@@ -590,8 +587,7 @@ impl Default for Showing {
         Self {
             answers: true,
             times: true,
-            prev_times: false,
-            time_diff: true,
+            prev_times: true,
             correct: true,
             was_correct: false,
         }
