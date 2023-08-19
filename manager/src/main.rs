@@ -395,9 +395,10 @@ fn update(solutions: &Solutions, library: Option<PathBuf>) -> anyhow::Result<()>
         let code = quote!(
             //! Auto generated library code
 
-            use std::collections::BTreeMap;
+            use std::{collections::BTreeMap, fmt::Debug};
 
             /// Generic solution
+            #[derive(Clone, Copy)]
             pub enum Solution {
                 /// Numerical solution
                 Numeric(fn(&str) -> i64),
@@ -417,7 +418,23 @@ fn update(solutions: &Solutions, library: Option<PathBuf>) -> anyhow::Result<()>
                 }
             }
 
+            impl Debug for Solution {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    struct IgnoredField;
+                    impl Debug for IgnoredField {
+                        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                            write!(f, "_")
+                        }
+                    }
+                    match self {
+                        Self::Numeric(_) => f.debug_tuple("Numeric").field(&IgnoredField).finish(),
+                        Self::Alpha(_) => f.debug_tuple("Alpha").field(&IgnoredField).finish(),
+                    }
+                }
+            }
+
             /// Solution for an entire day
+            #[derive(Debug, Clone, Copy, Default)]
             pub struct Day {
                 pub part1: Option<Solution>,
                 pub part2: Option<Solution>,
