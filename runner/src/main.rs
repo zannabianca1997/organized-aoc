@@ -6,7 +6,7 @@ use std::{
     collections::BTreeMap,
     fmt::Display,
     fs::{self, File},
-    io::{self, stdout},
+    io::{self},
     panic::catch_unwind,
     path::{Path, PathBuf},
     str::FromStr,
@@ -16,6 +16,7 @@ use std::{
 
 use anyhow::{bail, Context};
 use clap::Parser;
+use humantime::format_duration;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
@@ -373,7 +374,7 @@ fn main() -> anyhow::Result<()> {
 
     let table = FullTable::new(filter, results, Default::default());
 
-    serde_yaml::to_writer(stdout(), &table)?;
+    print!("{table}");
 
     if let Some(savefile) = save_baseline {
         serde_json::to_writer(
@@ -634,6 +635,28 @@ impl FullTable {
         }
     }
 }
+impl Display for FullTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "# Results")?;
+        writeln!(f)?;
+        if !self.filter.is_all() {
+            writeln!(f, "Filter: {}", self.filter)?;
+        }
+        writeln!(f)?;
+        if !self.total.is_empty() {
+            writeln!(f, "## Total of all years")?;
+            writeln!(f, "{}", self.total)?;
+            writeln!(f)?;
+        }
+        for (year, year_tbl) in &self.years {
+            writeln!(f, "## Year {year}")?;
+            writeln!(f, "{year_tbl}")?;
+            writeln!(f)?;
+        }
+
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct YearTable {
@@ -664,6 +687,22 @@ impl YearTable {
             |t, d| t.complexive(d.calc_total()),
         );
         &self.total
+    }
+}
+impl Display for YearTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if !self.total.is_empty() {
+            writeln!(f, "### Total of all days")?;
+            writeln!(f, "{}", self.total)?;
+            writeln!(f)?;
+        }
+        for (day, day_tbl) in &self.days {
+            writeln!(f, "### Day {day}")?;
+            writeln!(f, "{day_tbl}")?;
+            writeln!(f)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -707,6 +746,24 @@ impl DayRow {
         &self.total
     }
 }
+impl Display for DayRow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.part1.is_some() && self.part2.is_some() && !self.total.is_empty() {
+            writeln!(f, "#### Total for both parts")?;
+            writeln!(f, "{}", self.total)?;
+        }
+        if let Some(part1) = &self.part1 {
+            writeln!(f, "#### First part")?;
+            writeln!(f, "{}", part1)?;
+        }
+        if let Some(part2) = &self.part2 {
+            writeln!(f, "#### Second part")?;
+            writeln!(f, "{}", part2)?;
+        }
+
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct PartCell {
@@ -745,6 +802,16 @@ impl PartCell {
             },
             answer: if showing.answers { Some(answer) } else { None },
         }
+    }
+}
+
+impl Display for PartCell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(answer) = &self.answer {
+            writeln!(f, "Answer: `\"{answer}\"`")?;
+        }
+        writeln!(f, "{}", self.stats)?;
+        Ok(())
     }
 }
 
@@ -787,5 +854,45 @@ impl StatCell {
             && self.was_correct.is_none()
             && self.time.is_none()
             && self.prev_time.is_none()
+    }
+}
+
+impl Display for StatCell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(correct) = self.correct {
+            if correct {
+                write!(f, "Answer is correct")
+            } else {
+                write!(f, "Answer is wrong")
+            }?;
+            if let Some(was_correct) = self.was_correct {
+                if was_correct {
+                    write!(f, "(was correct)")
+                } else {
+                    write!(f, "(was wrong)")
+                }?;
+            }
+        } else {
+            if let Some(was_correct) = self.was_correct {
+                if was_correct {
+                    write!(f, "Old answer was correct")
+                } else {
+                    write!(f, "Old answer was wrong")
+                }?;
+            }
+        };
+        writeln!(f)?;
+        if let Some(time) = self.time {
+            write!(f, "Time: {}", humantime::format_duration(time))?;
+            if let Some(prev_time) = self.prev_time {
+                write!(f, "(previusly: {})", format_duration(prev_time))?;
+            }
+        } else {
+            if let Some(prev_time) = self.prev_time {
+                write!(f, "Previous time: {}", format_duration(prev_time))?;
+            }
+        };
+        writeln!(f)?;
+        Ok(())
     }
 }
