@@ -1,5 +1,4 @@
 #![feature(btree_drain_filter)]
-#![feature(once_cell)]
 #![feature(string_leak)]
 
 use std::{
@@ -11,11 +10,12 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
     sync::Mutex,
-    time::{Duration, Instant},
+    time::Instant,
 };
 
 use anyhow::{bail, Context};
 use clap::Parser;
+use formatter::{Baseline, Part, Run, RunResult};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
@@ -102,39 +102,6 @@ where
             Range::To(b) => write!(f, "..{b}"),
             Range::Between(a, b) if a == b => write!(f, "{a}"),
             Range::Between(a, b) => write!(f, "{a}..{b}"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-enum Part {
-    First,
-    Second,
-}
-impl Part {
-    fn idx(&self) -> usize {
-        match self {
-            Part::First => 0,
-            Part::Second => 1,
-        }
-    }
-}
-impl FromStr for Part {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s.trim() {
-            "1" => Self::First,
-            "2" => Self::Second,
-            _ => bail!("Unrecognized part"),
-        })
-    }
-}
-impl Display for Part {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Part::First => write!(f, "1"),
-            Part::Second => write!(f, "2"),
         }
     }
 }
@@ -500,38 +467,10 @@ fn read_answers(dir: impl AsRef<Path>) -> anyhow::Result<AnswersLibrary> {
 
 type BaselinesLibrary = BTreeMap<u16, BTreeMap<u8, [Option<Baseline>; 2]>>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Baseline {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    prev_time: Option<Duration>,
-    prev_answer: String,
-}
-
 fn read_baselines(dir: impl AsRef<Path>) -> anyhow::Result<BaselinesLibrary> {
     log::info!("Reading baselines");
     serde_json::from_reader(File::open(dir).context("Cannot open file")?)
         .context("Cannot parse file")
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Run {
-    year: u16,
-    day: u8,
-    part: Part,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    correct_answer: Option<String>,
-    #[serde(flatten)]
-    baseline: Option<Baseline>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct RunResult {
-    #[serde(flatten)]
-    run: Run,
-
-    answer: String,
-    time: Duration,
 }
 
 fn run(run: Run, solution: Solution, inputs: &Path) -> anyhow::Result<RunResult> {

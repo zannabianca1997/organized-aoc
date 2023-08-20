@@ -1,3 +1,2 @@
 [workspace]
-members = ["library", "manager", "runner"]
-exclude = ["skel"]
+members = ["library", "manager", "runner", "formatter"]

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 aoc_library = { path = "../library" }
+formatter = { path = "../formatter" }
 arrayvec = "0.7.4"
 clap = { version = "4.3.22", features = ["derive"] }
 either = { version = "1.9.0", features = ["serde"] }
