@@ -6,7 +6,7 @@ use std::{
     collections::BTreeMap,
     fmt::Display,
     fs::{self, File},
-    io::{self},
+    io::{self, stdout},
     panic::catch_unwind,
     path::{Path, PathBuf},
     str::FromStr,
@@ -16,7 +16,6 @@ use std::{
 
 use anyhow::{bail, Context};
 use clap::Parser;
-use humantime::format_duration;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
@@ -236,17 +235,6 @@ impl Filter {
     fn matches(&self, year: &u16, day: &u8, part: &Part) -> bool {
         self.0.iter().any(|f| f.matches(year, day, part))
     }
-
-    fn is_all(&self) -> bool {
-        matches!(
-            &*self.0,
-            [SingleFilter {
-                years: Range::All,
-                days: Range::All,
-                parts: Range::All
-            }]
-        )
-    }
 }
 
 impl Default for Filter {
@@ -336,8 +324,7 @@ fn main() -> anyhow::Result<()> {
                     year,
                     day,
                     part,
-                    solution,
-                    answer: answers
+                    correct_answer: answers
                         .get_mut(&year)
                         .and_then(|y| y.get_mut(&day))
                         .and_then(|d| d[part.idx()].take()),
@@ -346,16 +333,22 @@ fn main() -> anyhow::Result<()> {
                         .and_then(|y| y.get_mut(&day))
                         .and_then(|d| d[part.idx()].take()),
                 };
-                let res = run(run_data, &inputs);
+                let res = run(run_data, solution, &inputs);
                 match res {
-                    Ok(res) => results.push(res),
+                    Ok(res) => {
+                        println!("---");
+                        serde_yaml::to_writer(stdout(), &res)
+                            .context("Failed to serialize to stdout")?;
+                        println!("...");
+                        results.push(res)
+                    }
                     Err(err) => log::error!("Error during year {year}, day {day}: {err:?}"),
                 };
             }
         }
     }
 
-    if save_baseline.is_some() {
+    if let Some(savefile) = save_baseline {
         for RunResult {
             run: Run {
                 year, day, part, ..
@@ -366,17 +359,10 @@ fn main() -> anyhow::Result<()> {
         {
             baseline.entry(*year).or_default().entry(*day).or_default()[part.idx()] =
                 Some(Baseline {
-                    time: Some(*time),
-                    answer: answer.clone(),
+                    prev_time: Some(*time),
+                    prev_answer: answer.clone(),
                 })
         }
-    }
-
-    let table = FullTable::new(filter, results, Default::default());
-
-    print!("{table}");
-
-    if let Some(savefile) = save_baseline {
         serde_json::to_writer(
             File::create(savefile).context("Cannot save the baseline")?,
             &baseline,
@@ -517,8 +503,8 @@ type BaselinesLibrary = BTreeMap<u16, BTreeMap<u8, [Option<Baseline>; 2]>>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Baseline {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    time: Option<Duration>,
-    answer: String,
+    prev_time: Option<Duration>,
+    prev_answer: String,
 }
 
 fn read_baselines(dir: impl AsRef<Path>) -> anyhow::Result<BaselinesLibrary> {
@@ -527,29 +513,30 @@ fn read_baselines(dir: impl AsRef<Path>) -> anyhow::Result<BaselinesLibrary> {
         .context("Cannot parse file")
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Run {
     year: u16,
     day: u8,
     part: Part,
 
-    solution: Solution,
-
-    answer: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    correct_answer: Option<String>,
+    #[serde(flatten)]
     baseline: Option<Baseline>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 struct RunResult {
+    #[serde(flatten)]
     run: Run,
 
     answer: String,
     time: Duration,
 }
 
-fn run(run: Run, inputs: &Path) -> anyhow::Result<RunResult> {
+fn run(run: Run, solution: Solution, inputs: &Path) -> anyhow::Result<RunResult> {
     let input = read_input(inputs, run.year, run.day).context("Cannot read input")?;
-    match catch_unwind(|| match run.solution {
+    match catch_unwind(|| match solution {
         Solution::Numeric(fun) => {
             let start = Instant::now();
             let ans = fun(&input);
@@ -572,327 +559,5 @@ fn run(run: Run, inputs: &Path) -> anyhow::Result<RunResult> {
             Some(s) => bail!("Panicked at {s:?}"),
             None => bail!("Panicked with an unknow object"),
         },
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Showing {
-    answers: bool,
-    times: bool,
-    prev_times: bool,
-    correct: bool,
-    was_correct: bool,
-}
-impl Default for Showing {
-    fn default() -> Self {
-        Self {
-            answers: true,
-            times: true,
-            prev_times: true,
-            correct: true,
-            was_correct: false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct FullTable {
-    #[serde(default, skip_serializing_if = "Filter::is_all")]
-    filter: Filter,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    years: BTreeMap<u16, YearTable>,
-    #[serde(default, skip_serializing_if = "StatCell::is_empty")]
-    total: StatCell,
-}
-impl FullTable {
-    fn new(filter: Filter, data: impl IntoIterator<Item = RunResult>, showing: Showing) -> Self {
-        let mut years: BTreeMap<u16, YearTable> = BTreeMap::new();
-        for res @ RunResult {
-            run: Run { year, .. },
-            ..
-        } in data
-        {
-            years.entry(year).or_default().insert(res, &showing)
-        }
-        let total = if !years.is_empty() {
-            years.values_mut().fold(
-                StatCell {
-                    correct: Some(true),
-                    was_correct: Some(true),
-                    time: Some(Duration::ZERO),
-                    prev_time: Some(Duration::ZERO),
-                },
-                |t, y| t.complexive(y.calc_total()),
-            )
-        } else {
-            Default::default()
-        };
-
-        Self {
-            filter,
-            years,
-            total,
-        }
-    }
-}
-impl Display for FullTable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "# Results")?;
-        writeln!(f)?;
-        if !self.filter.is_all() {
-            writeln!(f, "Filter: {}", self.filter)?;
-        }
-        writeln!(f)?;
-        if !self.total.is_empty() {
-            writeln!(f, "## Total of all years")?;
-            writeln!(f, "{}", self.total)?;
-            writeln!(f)?;
-        }
-        for (year, year_tbl) in &self.years {
-            writeln!(f, "## Year {year}")?;
-            writeln!(f, "{year_tbl}")?;
-            writeln!(f)?;
-        }
-
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct YearTable {
-    days: BTreeMap<u8, DayRow>,
-    #[serde(default, skip_serializing_if = "StatCell::is_empty")]
-    total: StatCell,
-}
-impl YearTable {
-    fn insert(
-        &mut self,
-        res @ RunResult {
-            run: Run { day, .. },
-            ..
-        }: RunResult,
-        showing: &Showing,
-    ) {
-        self.days.entry(day).or_default().insert(res, showing)
-    }
-
-    fn calc_total(&mut self) -> &StatCell {
-        self.total = self.days.values_mut().fold(
-            StatCell {
-                correct: Some(true),
-                was_correct: Some(true),
-                time: Some(Duration::ZERO),
-                prev_time: Some(Duration::ZERO),
-            },
-            |t, d| t.complexive(d.calc_total()),
-        );
-        &self.total
-    }
-}
-impl Display for YearTable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if !self.total.is_empty() {
-            writeln!(f, "### Total of all days")?;
-            writeln!(f, "{}", self.total)?;
-            writeln!(f)?;
-        }
-        for (day, day_tbl) in &self.days {
-            writeln!(f, "### Day {day}")?;
-            writeln!(f, "{day_tbl}")?;
-            writeln!(f)?;
-        }
-
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct DayRow {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    part1: Option<PartCell>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    part2: Option<PartCell>,
-    #[serde(default, skip_serializing_if = "StatCell::is_empty")]
-    total: StatCell,
-}
-impl DayRow {
-    fn insert(
-        &mut self,
-        res @ RunResult {
-            run: Run { part, .. },
-            ..
-        }: RunResult,
-        showing: &Showing,
-    ) {
-        match part {
-            Part::First => self.part1 = Some(PartCell::new(res, showing)),
-            Part::Second => self.part2 = Some(PartCell::new(res, showing)),
-        }
-    }
-
-    fn calc_total(&mut self) -> &StatCell {
-        self.total = StatCell {
-            correct: Some(true),
-            was_correct: Some(true),
-            time: Some(Duration::ZERO),
-            prev_time: Some(Duration::ZERO),
-        };
-        if let Some(part1) = &self.part1 {
-            self.total = self.total.complexive(&part1.stats)
-        }
-        if let Some(part2) = &self.part2 {
-            self.total = self.total.complexive(&part2.stats)
-        }
-        &self.total
-    }
-}
-impl Display for DayRow {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.part1.is_some() && self.part2.is_some() && !self.total.is_empty() {
-            writeln!(f, "#### Total for both parts")?;
-            writeln!(f, "{}", self.total)?;
-        }
-        if let Some(part1) = &self.part1 {
-            writeln!(f, "#### First part")?;
-            writeln!(f, "{}", part1)?;
-        }
-        if let Some(part2) = &self.part2 {
-            writeln!(f, "#### Second part")?;
-            writeln!(f, "{}", part2)?;
-        }
-
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct PartCell {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    answer: Option<String>,
-    #[serde(flatten)]
-    stats: StatCell,
-}
-
-impl PartCell {
-    fn new(RunResult { run, answer, time }: RunResult, showing: &Showing) -> PartCell {
-        let correct_answer = run.answer.as_ref();
-        let prev_time = run.baseline.as_ref().and_then(|b| b.time.as_ref());
-        let prev_answer = run.baseline.as_ref().map(|b| &b.answer);
-
-        PartCell {
-            stats: StatCell {
-                correct: if let (true, Some(correct_answer)) = (showing.correct, correct_answer) {
-                    Some(&answer == correct_answer)
-                } else {
-                    None
-                },
-                was_correct: if let (true, Some(correct_answer), Some(prev_answer)) =
-                    (showing.was_correct, correct_answer, prev_answer)
-                {
-                    Some(prev_answer == correct_answer)
-                } else {
-                    None
-                },
-                time: if showing.times { Some(time) } else { None },
-                prev_time: if let (true, Some(prev_time)) = (showing.prev_times, prev_time) {
-                    Some(*prev_time)
-                } else {
-                    None
-                },
-            },
-            answer: if showing.answers { Some(answer) } else { None },
-        }
-    }
-}
-
-impl Display for PartCell {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(answer) = &self.answer {
-            writeln!(f, "Answer: `\"{answer}\"`")?;
-        }
-        writeln!(f, "{}", self.stats)?;
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
-struct StatCell {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    correct: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    was_correct: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    time: Option<Duration>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    prev_time: Option<Duration>,
-}
-
-impl StatCell {
-    fn complexive(&self, other: &Self) -> Self {
-        Self {
-            correct: match (self.correct, other.correct) {
-                (None, None) | (None, Some(_)) | (Some(_), None) => None,
-                (Some(a), Some(b)) => Some(a && b),
-            },
-            was_correct: match (self.was_correct, other.was_correct) {
-                (None, None) | (None, Some(_)) | (Some(_), None) => None,
-                (Some(a), Some(b)) => Some(a && b),
-            },
-            time: match (self.time, other.time) {
-                (None, None) | (None, Some(_)) | (Some(_), None) => None,
-                (Some(a), Some(b)) => Some(a + b),
-            },
-            prev_time: match (self.prev_time, other.prev_time) {
-                (None, None) | (None, Some(_)) | (Some(_), None) => None,
-                (Some(a), Some(b)) => Some(a + b),
-            },
-        }
-    }
-
-    fn is_empty(&self) -> bool {
-        self.correct.is_none()
-            && self.was_correct.is_none()
-            && self.time.is_none()
-            && self.prev_time.is_none()
-    }
-}
-
-impl Display for StatCell {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(correct) = self.correct {
-            if correct {
-                write!(f, "Answer is correct")
-            } else {
-                write!(f, "Answer is wrong")
-            }?;
-            if let Some(was_correct) = self.was_correct {
-                if was_correct {
-                    write!(f, "(was correct)")
-                } else {
-                    write!(f, "(was wrong)")
-                }?;
-            }
-        } else {
-            if let Some(was_correct) = self.was_correct {
-                if was_correct {
-                    write!(f, "Old answer was correct")
-                } else {
-                    write!(f, "Old answer was wrong")
-                }?;
-            }
-        };
-        writeln!(f)?;
-        if let Some(time) = self.time {
-            write!(f, "Time: {}", humantime::format_duration(time))?;
-            if let Some(prev_time) = self.prev_time {
-                write!(f, "(previusly: {})", format_duration(prev_time))?;
-            }
-        } else {
-            if let Some(prev_time) = self.prev_time {
-                write!(f, "Previous time: {}", format_duration(prev_time))?;
-            }
-        };
-        writeln!(f)?;
-        Ok(())
     }
 }
