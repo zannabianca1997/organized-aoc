@@ -1,0 +1,15 @@
+[package]
+name = "aoc_macros"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["proc-macro"]
+
+[dependencies]
+proc-macro2 = "1.0.66"
+quote = "1.0.33"
+syn = "2.0.29"
+aoc_runtime = { path = "../aoc_runtime" }
+darling = "0.20.3"
+either = "1.9.0"

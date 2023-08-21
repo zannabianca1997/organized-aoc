@@ -1,4 +1,6 @@
-//! Aoc year 2015 day 1
+use aoc_macros::aoc;
+
+#[aoc(year = 2015, day = 1, part = 1)]
 pub fn part1(input: &str) -> i64 {
     input
         .bytes()

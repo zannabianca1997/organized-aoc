@@ -1,2 +1,2 @@
 [workspace]
-members = ["library", "manager", "runner", "formatter"]
+members = ["aoc_runtime", "aoc_macros", "solutions/2015/1"]
