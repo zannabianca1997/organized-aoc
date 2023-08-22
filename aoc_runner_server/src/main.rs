@@ -1,6 +1,15 @@
-use std::{borrow::Cow, hint::black_box, num::NonZeroUsize};
+#![feature(error_reporter)]
+
+use std::{
+    borrow::Cow,
+    error::Report,
+    hint::black_box,
+    io::{self, stdin, stdout, Write},
+    num::NonZeroUsize,
+};
 
 use chrono::Duration;
+use thiserror::Error;
 
 use aoc::{AoCDay, AoCPart, AoCYear, Solution};
 use aoc_runner_binds::*;
@@ -101,5 +110,30 @@ pub fn exec(req: Request) -> Response {
         } => Response::TimeIt {
             time: timeit(year, day, part, idx, &input, reps),
         },
+    }
+}
+
+#[derive(Debug, Error)]
+enum ReplError {
+    #[error("Error while reading request")]
+    In(#[source] io::Error),
+    #[error("Error while parsing request")]
+    Parse(#[source] serde_json::Error),
+    #[error("Error while printing response")]
+    Out(#[source] io::Error),
+}
+
+fn main() {
+    for l in stdin().lines() {
+        match l
+            .map_err(ReplError::In)
+            .and_then(|l| serde_json::from_str(&l).map_err(ReplError::Parse))
+            .map(exec)
+            .map(|res| serde_json::to_string(&res).unwrap())
+            .and_then(|l| writeln!(stdout(), "{l}").map_err(ReplError::Out))
+        {
+            Ok(()) => (),
+            Err(err) => eprintln!("Error: {}", Report::new(err).pretty(true)),
+        }
     }
 }

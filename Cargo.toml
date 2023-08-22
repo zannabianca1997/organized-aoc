@@ -2,7 +2,7 @@
 members = [
     "aoc_runtime",
     "aoc_macros",
-    "aoc_runner",
+    "aoc_runner_server",
     "aoc_runner_binds",
     "aoc",
     "solutions/index",

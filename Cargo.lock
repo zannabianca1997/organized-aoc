@@ -41,7 +41,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "aoc_runner"
+name = "aoc_runner_binds"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "chrono",
+ "serde",
+]
+
+[[package]]
+name = "aoc_runner_server"
 version = "0.1.0"
 dependencies = [
  "aoc",
@@ -51,15 +60,6 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
-]
-
-[[package]]
-name = "aoc_runner_binds"
-version = "0.1.0"
-dependencies = [
- "aoc",
- "chrono",
- "serde",
 ]
 
 [[package]]
