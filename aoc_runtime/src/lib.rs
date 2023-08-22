@@ -1,15 +1,12 @@
 use std::fmt::Debug;
 
 use calendar::{AoCDay, AoCPart, AoCYear};
-pub use linkme::distributed_slice;
 
+pub mod __private;
 pub mod calendar;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Solution {
-    pub year: AoCYear,
-    pub day: AoCDay,
-    pub part: AoCPart,
     pub long_running: bool,
     pub fun: SolutionFn,
 }
@@ -19,6 +16,15 @@ pub enum SolutionFn {
     Numeric(fn(&str) -> i64),
     Alpha(fn(&str) -> String),
     Multiline(fn(&str) -> String),
+}
+impl SolutionFn {
+    /// Returns `true` if the solution fn is [`Multiline`].
+    ///
+    /// [`Multiline`]: SolutionFn::Multiline
+    #[must_use]
+    pub const fn is_multiline(&self) -> bool {
+        matches!(self, Self::Multiline(..))
+    }
 }
 
 impl Debug for SolutionFn {
@@ -38,5 +44,13 @@ impl Debug for SolutionFn {
     }
 }
 
-#[distributed_slice]
-pub static SOLUTIONS: [Solution] = [..];
+/// A library of AoC solutions
+pub struct Library(pub [Option<&'static Year>; AoCYear::NUM_YEARS]);
+
+/// A year of AoC solutions
+pub struct Year(pub [Option<&'static Day>; AoCDay::NUM_DAYS]);
+/// A year of AoC solutions
+pub struct Day {
+    pub part1: &'static [&'static Solution],
+    pub part2: &'static [&'static Solution],
+}

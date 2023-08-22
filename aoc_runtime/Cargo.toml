@@ -6,8 +6,9 @@ edition = "2021"
 
 [dependencies]
 darling = "0.20.3"
-linkme = "0.3.15"
+either = "1.9.0"
 proc-macro2 = "1.0.66"
 quote = "1.0.33"
 serde = { version = "1.0.185", features = ["derive"] }
+syn = "2.0.29"
 thiserror = "1.0.47"

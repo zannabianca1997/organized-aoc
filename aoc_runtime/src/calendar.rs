@@ -1,8 +1,5 @@
 use std::{fmt::Display, mem, num::ParseIntError, str::FromStr};
 
-use darling::{export::syn::Lit, FromMeta};
-use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -35,6 +32,14 @@ pub enum AoCDay {
     _23 = 23,
     _24 = 24,
     _25 = 25,
+}
+
+impl AoCDay {
+    pub const NUM_DAYS: usize = 25;
+
+    pub const fn idx(self) -> usize {
+        (self as u8 - 1) as usize
+    }
 }
 
 impl From<AoCDay> for u8 {
@@ -83,26 +88,6 @@ impl FromStr for AoCDay {
     }
 }
 
-impl FromMeta for AoCDay {
-    fn from_value(value: &Lit) -> darling::Result<Self> {
-        (if let Lit::Int(ref s) = *value {
-            s.base10_parse::<u8>()
-                .map_err(darling::Error::custom)
-                .and_then(|v| Self::try_from(v).map_err(darling::Error::custom))
-        } else {
-            Err(darling::Error::unexpected_lit_type(value))
-        })
-        .map_err(|e| e.with_span(value))
-    }
-}
-
-impl ToTokens for AoCDay {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ident = format_ident!("_{}", u8::from(*self));
-        quote!(::aoc_runtime::calendar::AoCDay::#ident).to_tokens(tokens);
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(
     try_from = "u16",
@@ -119,6 +104,14 @@ pub enum AoCYear {
     _2020 = 20,
     _2021 = 21,
     _2022 = 22,
+}
+
+impl AoCYear {
+    pub const NUM_YEARS: usize = 8;
+
+    pub const fn idx(self) -> usize {
+        ((self as u8) - 15) as usize
+    }
 }
 
 impl From<AoCYear> for u16 {
@@ -168,26 +161,6 @@ impl FromStr for AoCYear {
     }
 }
 
-impl FromMeta for AoCYear {
-    fn from_value(value: &Lit) -> darling::Result<Self> {
-        (if let Lit::Int(ref s) = *value {
-            s.base10_parse::<u16>()
-                .map_err(darling::Error::custom)
-                .and_then(|v| Self::try_from(v).map_err(darling::Error::custom))
-        } else {
-            Err(darling::Error::unexpected_lit_type(value))
-        })
-        .map_err(|e| e.with_span(value))
-    }
-}
-
-impl ToTokens for AoCYear {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ident = format_ident!("_{}", u16::from(*self));
-        quote!(::aoc_runtime::calendar::AoCYear::#ident).to_tokens(tokens);
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(expecting = "a part of an AoC day")]
 pub enum AoCPart {
@@ -195,11 +168,22 @@ pub enum AoCPart {
     Second,
 }
 
+impl AoCPart {
+    pub const NUM_PARTS: usize = 2;
+
+    pub const fn idx(self) -> usize {
+        match self {
+            AoCPart::First => 0,
+            AoCPart::Second => 1,
+        }
+    }
+}
+
 impl Display for AoCPart {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AoCPart::First => write!(f, "1"),
-            AoCPart::Second => write!(f, "2"),
+            AoCPart::First => write!(f, "first"),
+            AoCPart::Second => write!(f, "second"),
         }
     }
 }
@@ -213,36 +197,9 @@ impl FromStr for AoCPart {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "1" => Ok(Self::First),
-            "2" => Ok(Self::Second),
+            "1" | "first" | "part1" => Ok(Self::First),
+            "2" | "second" | "part2" => Ok(Self::Second),
             _ => Err(ParseAoCPartError),
         }
-    }
-}
-
-impl FromMeta for AoCPart {
-    fn from_value(value: &Lit) -> darling::Result<Self> {
-        (if let Lit::Int(ref s) = *value {
-            s.base10_parse::<u8>()
-                .map_err(darling::Error::custom)
-                .and_then(|v| match v {
-                    1 => Ok(Self::First),
-                    2 => Ok(Self::Second),
-                    _ => Err(darling::Error::custom(ParseAoCPartError)),
-                })
-        } else {
-            Err(darling::Error::unexpected_lit_type(value))
-        })
-        .map_err(|e| e.with_span(value))
-    }
-}
-
-impl ToTokens for AoCPart {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ident = match self {
-            AoCPart::First => format_ident!("First"),
-            AoCPart::Second => format_ident!("Second"),
-        };
-        quote!(::aoc_runtime::calendar::AoCPart::#ident).to_tokens(tokens);
     }
 }

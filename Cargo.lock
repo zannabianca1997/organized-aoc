@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "aoc"
+version = "0.1.0"
+dependencies = [
+ "aoc_macros",
+ "aoc_runtime",
+]
+
+[[package]]
 name = "aoc_2015_1"
 version = "0.1.0"
 dependencies = [
@@ -16,11 +24,7 @@ name = "aoc_macros"
 version = "0.1.0"
 dependencies = [
  "aoc_runtime",
- "darling",
- "either",
  "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -28,10 +32,11 @@ name = "aoc_runtime"
 version = "0.1.0"
 dependencies = [
  "darling",
- "linkme",
+ "either",
  "proc-macro2",
  "quote",
  "serde",
+ "syn",
  "thiserror",
 ]
 
