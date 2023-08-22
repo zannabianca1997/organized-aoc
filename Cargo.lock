@@ -45,11 +45,21 @@ name = "aoc_runner"
 version = "0.1.0"
 dependencies = [
  "aoc",
+ "aoc_runner_binds",
  "chrono",
  "index",
  "serde",
  "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "aoc_runner_binds"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "chrono",
+ "serde",
 ]
 
 [[package]]
