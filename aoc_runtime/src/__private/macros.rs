@@ -1,18 +1,16 @@
-use std::{collections::BTreeMap, mem, process::id, str::FromStr};
+use std::{collections::BTreeMap, mem, str::FromStr};
 
 use darling::FromMeta;
-use proc_macro2::{Ident, Literal, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     bracketed,
-    meta::ParseNestedMeta,
     parse::Parse,
-    parse2, parse_macro_input,
+    parse2,
     punctuated::Punctuated,
     spanned::Spanned,
-    token::{self, Bracket, Token},
-    Expr, ExprLit, ItemFn, Lit, LitInt, Meta, MetaList, MetaNameValue, Path, Token, Type, TypePath,
-    Visibility,
+    token::{self, Bracket},
+    Expr, ExprLit, ItemFn, Lit, LitInt, MetaNameValue, Path, Token, Type, TypePath, Visibility,
 };
 
 use crate::calendar::{AoCDay, AoCPart, AoCYear};
@@ -41,6 +39,7 @@ impl ToTokens for AoCPart {
     }
 }
 
+#[allow(unused)]
 struct LibraryItem {
     year: LitInt,
     arrow: Token![=>],
@@ -106,6 +105,7 @@ pub fn library(input: TokenStream) -> TokenStream {
     )
 }
 
+#[allow(unused)]
 struct YearItem {
     day: LitInt,
     arrow: Token![=>],
@@ -169,6 +169,7 @@ pub fn year(input: TokenStream) -> TokenStream {
     )
 }
 
+#[allow(unused)]
 struct DayItemInitSlice {
     bracket: Bracket,
     items: Punctuated<Path, Token![,]>,
@@ -196,6 +197,7 @@ impl Parse for DayItemInit {
     }
 }
 
+#[allow(unused)]
 struct DayItem {
     ident: Ident,
     colon: Option<Token![:]>,

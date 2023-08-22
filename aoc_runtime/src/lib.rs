@@ -3,7 +3,6 @@
 #![feature(box_patterns)]
 
 use std::fmt::Debug;
-use std::ops::Index;
 
 use calendar::{AoCDay, AoCPart, AoCYear};
 
