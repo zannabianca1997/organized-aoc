@@ -1,13 +1,20 @@
+#![feature(is_some_and)]
+#![feature(drain_filter)]
+#![feature(box_patterns)]
+
 use std::fmt::Debug;
+use std::ops::Index;
 
 use calendar::{AoCDay, AoCPart, AoCYear};
 
 pub mod __private;
 pub mod calendar;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Solution {
+    pub name: &'static str,
     pub long_running: bool,
+    pub descr: Option<&'static str>,
     pub fun: SolutionFn,
 }
 
@@ -45,12 +52,48 @@ impl Debug for SolutionFn {
 }
 
 /// A library of AoC solutions
-pub struct Library(pub [Option<&'static Year>; AoCYear::NUM_YEARS]);
+pub struct Library(pub [&'static Year; AoCYear::NUM_YEARS]);
+
+impl Library {
+    pub fn get_year(&self, year: AoCYear) -> &'static Year {
+        self.0[year.idx()]
+    }
+    pub fn get_day(&self, year: AoCYear, day: AoCDay) -> &'static Day {
+        self.get_year(year).get_day(day)
+    }
+    pub fn get_part(
+        &self,
+        year: AoCYear,
+        day: AoCDay,
+        part: AoCPart,
+    ) -> &'static [&'static Solution] {
+        self.get_year(year).get_day(day).get_part(part)
+    }
+}
 
 /// A year of AoC solutions
-pub struct Year(pub [Option<&'static Day>; AoCDay::NUM_DAYS]);
+pub struct Year(pub [&'static Day; AoCDay::NUM_DAYS]);
+
+impl Year {
+    pub fn get_day(&self, day: AoCDay) -> &'static Day {
+        self.0[day.idx()]
+    }
+    pub fn get_part(&self, day: AoCDay, part: AoCPart) -> &'static [&'static Solution] {
+        self.get_day(day).get_part(part)
+    }
+}
+
 /// A year of AoC solutions
 pub struct Day {
     pub part1: &'static [&'static Solution],
     pub part2: &'static [&'static Solution],
+}
+
+impl Day {
+    pub fn get_part(&self, part: AoCPart) -> &'static [&'static Solution] {
+        match part {
+            AoCPart::First => self.part1,
+            AoCPart::Second => self.part2,
+        }
+    }
 }

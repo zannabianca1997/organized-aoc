@@ -1,2 +1,9 @@
 [workspace]
-members = ["aoc_runtime", "aoc_macros", "aoc", "solutions/2015/1"]
+members = [
+    "aoc_runtime",
+    "aoc_macros",
+    "aoc",
+    "solutions/index",
+    "solutions/2015/index",
+    "solutions/2015/1",
+]

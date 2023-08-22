@@ -18,7 +18,7 @@
 //!     part2: [part2_multiline, part2_long]
 //! };
 //!
-//!/*
+//!
 //! #[solution]
 //! fn part1(input: &str) -> i64 {
 //!     todo!()
@@ -30,11 +30,14 @@
 //! }
 //!
 //! #[solution(multiline)]
+//! /// This is a descriptio!
 //! fn part2_multiline(input: &str) -> String {
 //!     todo!()
 //! }
-//!*/
 //! ```
 
 pub use aoc_macros::*;
-pub use aoc_runtime::{Day, Library, Year, __private};
+pub use aoc_runtime::{
+    Day, Library, Solution, SolutionFn, Year, __private,
+    calendar::{AoCDay, AoCPart, AoCYear},
+};

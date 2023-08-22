@@ -1,3 +1,8 @@
+use aoc::{day, solution, Day};
+
+pub static DAY: Day = day!(part1, part2);
+
+#[solution]
 pub fn part1(input: &str) -> i64 {
     input
         .bytes()
@@ -9,6 +14,7 @@ pub fn part1(input: &str) -> i64 {
         .sum()
 }
 
+#[solution]
 pub fn part2(input: &str) -> i64 {
     input
         .bytes()

@@ -1,14 +1,18 @@
-use std::{collections::BTreeMap, process::id, str::FromStr};
+use std::{collections::BTreeMap, mem, process::id, str::FromStr};
 
+use darling::FromMeta;
 use proc_macro2::{Ident, Literal, Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     bracketed,
+    meta::ParseNestedMeta,
     parse::Parse,
     parse2, parse_macro_input,
     punctuated::Punctuated,
+    spanned::Spanned,
     token::{self, Bracket, Token},
-    LitInt, Path, Token,
+    Expr, ExprLit, ItemFn, Lit, LitInt, Meta, MetaList, MetaNameValue, Path, Token, Type, TypePath,
+    Visibility,
 };
 
 use crate::calendar::{AoCDay, AoCPart, AoCYear};
@@ -89,8 +93,13 @@ pub fn library(input: TokenStream) -> TokenStream {
         years[year.idx()] = Some(path)
     }
     let years = years.into_iter().map(|y| match y {
-        Some(y) => quote!(::std::option::Option::Some(& #y)),
-        None => quote!(::std::option::Option::None),
+        Some(y) => quote!(& #y),
+        None => quote!(&::aoc::Year(
+            [&::aoc::Day {
+                part1: &[],
+                part2: &[]
+            }; ::aoc::AoCDay::NUM_DAYS]
+        )),
     });
     quote!(
         ::aoc::Library([#(#years),*])
@@ -149,8 +158,11 @@ pub fn year(input: TokenStream) -> TokenStream {
         days[day.idx()] = Some(path)
     }
     let days = days.into_iter().map(|y| match y {
-        Some(y) => quote!(::std::option::Option::Some(& #y)),
-        None => quote!(::std::option::Option::None),
+        Some(d) => quote!(& #d),
+        None => quote!(&::aoc::Day {
+            part1: &[],
+            part2: &[]
+        }),
     });
     quote!(
         ::aoc::Year([#(#days),*])
@@ -247,12 +259,120 @@ pub fn day(input: TokenStream) -> TokenStream {
     )
 }
 
+#[derive(FromMeta, Default)]
 struct SolutionParams {
+    #[darling(default)]
     multiline: bool,
+    #[darling(default)]
     long_running: bool,
+    #[darling(default)]
+    name: Option<String>,
+    #[darling(default)]
     descr: Option<String>,
 }
 
-pub fn solution(attr: TokenStream, item: TokenStream) -> TokenStream {
-    todo!()
+pub fn solution(params: TokenStream, item: TokenStream) -> TokenStream {
+    let SolutionParams {
+        multiline,
+        long_running,
+        name,
+        descr,
+    } = if params.is_empty() {
+        SolutionParams::default()
+    } else {
+        match syn::parse2(quote_spanned!(params.span()=>solution(#params)))
+            .map(|meta| SolutionParams::from_meta(&meta))
+        {
+            Ok(Ok(p)) => p,
+            Ok(Err(err)) => return err.write_errors(),
+            Err(err) => return err.into_compile_error(),
+        }
+    };
+    let mut item: ItemFn = match syn::parse2(item) {
+        Ok(fun) => fun,
+        Err(err) => return err.into_compile_error(),
+    };
+    // taking docs and visibility
+    let vis = mem::replace(&mut item.vis, Visibility::Inherited);
+    let docs: Vec<_> = item
+        .attrs
+        .drain_filter(|attr| {
+            attr.meta
+                .require_name_value()
+                .is_ok_and(|MetaNameValue { path, .. }| path.is_ident("doc"))
+        })
+        .collect();
+    let item_name = item.sig.ident.clone();
+    // setting defaults
+    let name = name.unwrap_or_else(|| item_name.to_string());
+    let descr = descr
+        .or_else(|| {
+            docs.iter()
+                .filter_map(|attr| {
+                    attr.meta.require_name_value().ok().and_then(
+                        |MetaNameValue { value, .. }| {
+                            if let Expr::Lit(ExprLit {
+                                lit: Lit::Str(s), ..
+                            }) = value
+                            {
+                                Some(s.value())
+                            } else {
+                                None
+                            }
+                        },
+                    )
+                })
+                .reduce(|mut a, b| {
+                    a.push_str(&b);
+                    a
+                })
+        })
+        .map(|d| quote!(::std::option::Option::Some(#d)))
+        .unwrap_or_else(|| quote!(::std::option::Option::None));
+    // Checking if the result is numeric
+    let numeric = match &item.sig.output {
+        syn::ReturnType::Type(_, box Type::Path(TypePath { qself: None, path }))
+            if path.is_ident("i64") =>
+        {
+            true
+        }
+        syn::ReturnType::Type(_, box Type::Path(TypePath { qself: None, path }))
+            if path.is_ident("String") =>
+        {
+            false
+        }
+        out => {
+            return syn::Error::new_spanned(out, "Accepted outputs are i64 and String")
+                .into_compile_error()
+        }
+    };
+
+    let block = quote_spanned!(item.span() =>  {
+        #item
+        #item_name
+    });
+
+    let fun = match (numeric, multiline) {
+        (true, true) => {
+            return syn::Error::new_spanned(
+                item.sig.output,
+                "i64 is not compatible with multiline output",
+            )
+            .into_compile_error()
+        }
+        (true, false) => quote_spanned!(block.span()=>::aoc::SolutionFn::Numeric(#block)),
+        (false, true) => quote_spanned!(block.span()=>::aoc::SolutionFn::Multiline(#block)),
+        (false, false) => quote_spanned!(block.span()=>::aoc::SolutionFn::Alpha(#block)),
+    };
+
+    quote!(
+            #(#docs)*
+            #[allow(non_upper_case_globals)]
+            #vis static #item_name: ::aoc::Solution = ::aoc::Solution {
+                name: #name,
+                long_running: #long_running,
+                descr: #descr,
+                fun: #fun,
+            };
+    )
 }
