@@ -2,6 +2,7 @@
 members = [
     "aoc_runtime",
     "aoc_macros",
+    "aoc_runner",
     "aoc",
     "solutions/index",
     "solutions/2015/index",

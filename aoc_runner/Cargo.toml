@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-aoc_runtime = { path = "../aoc_runtime" }
-aoc_2015_1 = { path = "../solutions/2015/1" }
+aoc = { path = "../aoc" }
+index = { path = "../solutions/index" }
 
 chrono = "0.4.26"
 serde = { version = "1.0.185", features = ["derive"] }

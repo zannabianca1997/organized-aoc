@@ -19,7 +19,6 @@ enum ReplError {
 }
 
 fn main() {
-    dbg!(aoc_runtime::SOLUTIONS.len());
     for l in stdin().lines() {
         match l
             .map_err(ReplError::In)

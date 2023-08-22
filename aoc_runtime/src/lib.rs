@@ -9,7 +9,7 @@ use calendar::{AoCDay, AoCPart, AoCYear};
 pub mod __private;
 pub mod calendar;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Solution {
     pub name: &'static str,
     pub long_running: bool,

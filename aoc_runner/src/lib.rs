@@ -1,9 +1,9 @@
-use std::num::NonZeroUsize;
+use std::{borrow::Cow, num::NonZeroUsize};
 
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 
-use aoc_runtime::calendar::{AoCDay, AoCPart, AoCYear};
+use aoc::{AoCDay, AoCPart, AoCYear, Solution};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "action")]
@@ -14,10 +14,16 @@ pub enum Request {
         part: AoCPart,
     },
     Run {
+        year: AoCYear,
+        day: AoCDay,
+        part: AoCPart,
         idx: usize,
         input: String,
     },
     TimeIt {
+        year: AoCYear,
+        day: AoCDay,
+        part: AoCPart,
         idx: usize,
         input: String,
         reps: NonZeroUsize,
@@ -47,6 +53,8 @@ pub struct SolutionInfo {
     pub idx: usize,
     pub multiline: bool,
     pub long_running: bool,
+    pub name: Cow<'static, str>,
+    pub descr: Option<Cow<'static, str>>,
 }
 
 mod serde_duration {
@@ -98,46 +106,48 @@ mod serde_duration {
 }
 
 pub fn list(year: AoCYear, day: AoCDay, part: AoCPart) -> impl Iterator<Item = SolutionInfo> {
-    aoc_runtime::SOLUTIONS
-        .iter()
+    index::LIBRARY
+        .get_part(year, day, part)
+        .into_iter()
+        .copied()
+        .copied()
         .enumerate()
-        .filter(
-            move |(
-                _,
-                aoc_runtime::Solution {
-                    year: y,
-                    day: d,
-                    part: p,
-                    ..
-                },
-            )| *y == year && *d == day && *p == part,
-        )
         .map(
-            |(
+            move |(
                 idx,
-                aoc_runtime::Solution {
+                Solution {
+                    name,
+                    long_running,
+                    descr,
+                    fun,
+                },
+            )| {
+                SolutionInfo {
                     year,
                     day,
                     part,
+                    idx,
+                    multiline: fun.is_multiline(),
                     long_running,
-                    fun,
-                },
-            )| SolutionInfo {
-                year: *year,
-                day: *day,
-                part: *part,
-                idx,
-                multiline: fun.is_multiline(),
-                long_running: *long_running,
+                    name: Cow::Borrowed(name),
+                    descr: descr.map(Cow::Borrowed),
+                }
             },
         )
 }
 
-pub fn run(idx: usize, input: &str) -> String {
+pub fn run(year: AoCYear, day: AoCDay, part: AoCPart, idx: usize, input: &str) -> String {
     todo!()
 }
 
-pub fn timeit(idx: usize, input: &str, reps: NonZeroUsize) -> Duration {
+pub fn timeit(
+    year: AoCYear,
+    day: AoCDay,
+    part: AoCPart,
+    idx: usize,
+    input: &str,
+    reps: NonZeroUsize,
+) -> Duration {
     todo!()
 }
 
@@ -146,11 +156,24 @@ pub fn exec(req: Request) -> Response {
         Request::List { year, day, part } => Response::List {
             found: list(year, day, part).collect(),
         },
-        Request::Run { idx, input } => Response::Run {
-            answer: run(idx, &input),
+        Request::Run {
+            idx,
+            input,
+            year,
+            day,
+            part,
+        } => Response::Run {
+            answer: run(year, day, part, idx, &input),
         },
-        Request::TimeIt { idx, reps, input } => Response::TimeIt {
-            time: timeit(idx, &input, reps),
+        Request::TimeIt {
+            year,
+            day,
+            part,
+            idx,
+            reps,
+            input,
+        } => Response::TimeIt {
+            time: timeit(year, day, part, idx, &input, reps),
         },
     }
 }
