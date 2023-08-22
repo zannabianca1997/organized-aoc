@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 aoc = { path = "../aoc" }
 aoc_runner_binds = { path = "../aoc_runner_binds" }
-index = { path = "../solutions/index" }
+aoc_index = { path = "../aoc_index" }
 
 chrono = "0.4.26"
 serde = { version = "1.0.185", features = ["derive"] }

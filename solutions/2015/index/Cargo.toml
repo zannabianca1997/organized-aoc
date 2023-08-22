@@ -1,8 +1,0 @@
-[package]
-name = "index_2015"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-aoc = { path = "../../../aoc" }
-aoc_2015_1 = { path = "../1" }
