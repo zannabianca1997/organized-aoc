@@ -1,11 +1,10 @@
 [package]
-name = "aoc_index"
+name = "runner"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aoc = { path = "../aoc" }
-
-aoc_2015_1 = { path = "../solutions/2015/1" }
+clap = { version = "4.4.2", features = ["derive"] }
+features = "0.10.0"

@@ -1,8 +1,0 @@
-[package]
-name = "aoc"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-aoc_macros = { path = "../aoc_macros" }
-aoc_runtime = { path = "../aoc_runtime" }
