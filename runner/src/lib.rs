@@ -24,10 +24,193 @@ use serde::{Deserialize, Serialize, Serializer};
 use crate::filters::Filters;
 
 #[derive(Clone, Debug, Copy)]
-pub enum Part {
-    Numeric(fn(&str) -> i64),
-    Alpha(fn(&str) -> String),
-    Multiline(fn(&str) -> String),
+pub enum PartFn {
+    ISize(fn(&str) -> isize),
+    I64(fn(&str) -> i64),
+    I32(fn(&str) -> i32),
+    I16(fn(&str) -> i16),
+    I8(fn(&str) -> i8),
+    USize(fn(&str) -> usize),
+    U64(fn(&str) -> u64),
+    U32(fn(&str) -> u32),
+    U16(fn(&str) -> u16),
+    U8(fn(&str) -> u8),
+    String(fn(&str) -> String),
+    Str(fn(&str) -> &str),
+}
+impl PartFn {
+    fn call(&self, input: &str) -> String {
+        match self {
+            PartFn::ISize(f) => (f)(input).to_string(),
+            PartFn::I64(f) => (f)(input).to_string(),
+            PartFn::I32(f) => (f)(input).to_string(),
+            PartFn::I16(f) => (f)(input).to_string(),
+            PartFn::I8(f) => (f)(input).to_string(),
+            PartFn::USize(f) => (f)(input).to_string(),
+            PartFn::U64(f) => (f)(input).to_string(),
+            PartFn::U32(f) => (f)(input).to_string(),
+            PartFn::U16(f) => (f)(input).to_string(),
+            PartFn::U8(f) => (f)(input).to_string(),
+            PartFn::String(f) => (f)(input),
+            PartFn::Str(f) => (f)(input).to_string(),
+        }
+    }
+    fn time(&self, input: &str, reps: u32) -> Duration {
+        (match self {
+            PartFn::ISize(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::I64(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::I32(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::I16(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::I8(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::USize(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::U64(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::U32(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::U16(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::U8(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::String(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+            PartFn::Str(f) => {
+                let s = Instant::now();
+                for _ in 0..reps {
+                    black_box((f)(black_box(input)));
+                }
+                s.elapsed()
+            }
+        }) / reps
+    }
+}
+
+impl From<fn(&str) -> isize> for PartFn {
+    fn from(value: fn(&str) -> isize) -> Self {
+        PartFn::ISize(value)
+    }
+}
+impl From<fn(&str) -> i64> for PartFn {
+    fn from(value: fn(&str) -> i64) -> Self {
+        PartFn::I64(value)
+    }
+}
+impl From<fn(&str) -> i32> for PartFn {
+    fn from(value: fn(&str) -> i32) -> Self {
+        PartFn::I32(value)
+    }
+}
+impl From<fn(&str) -> i16> for PartFn {
+    fn from(value: fn(&str) -> i16) -> Self {
+        PartFn::I16(value)
+    }
+}
+impl From<fn(&str) -> i8> for PartFn {
+    fn from(value: fn(&str) -> i8) -> Self {
+        PartFn::I8(value)
+    }
+}
+impl From<fn(&str) -> usize> for PartFn {
+    fn from(value: fn(&str) -> usize) -> Self {
+        PartFn::USize(value)
+    }
+}
+impl From<fn(&str) -> u64> for PartFn {
+    fn from(value: fn(&str) -> u64) -> Self {
+        PartFn::U64(value)
+    }
+}
+impl From<fn(&str) -> u32> for PartFn {
+    fn from(value: fn(&str) -> u32) -> Self {
+        PartFn::U32(value)
+    }
+}
+impl From<fn(&str) -> u16> for PartFn {
+    fn from(value: fn(&str) -> u16) -> Self {
+        PartFn::U16(value)
+    }
+}
+impl From<fn(&str) -> u8> for PartFn {
+    fn from(value: fn(&str) -> u8) -> Self {
+        PartFn::U8(value)
+    }
+}
+impl From<fn(&str) -> String> for PartFn {
+    fn from(value: fn(&str) -> String) -> Self {
+        PartFn::String(value)
+    }
+}
+impl From<fn(&str) -> &str> for PartFn {
+    fn from(value: fn(&str) -> &str) -> Self {
+        PartFn::Str(value)
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct Part {
+    fun: PartFn,
+    multiline: bool,
+    long_running: bool,
 }
 impl Part {
     fn measure(
@@ -37,37 +220,32 @@ impl Part {
     ) -> Result<Measurements, FailedMeasurements> {
         catch_unwind(|| {
             // first run it once to find the answer
-            let answer = match self {
-                Part::Numeric(fun) => (fun)(input).to_string(),
-                Part::Alpha(fun) | Part::Multiline(fun) => (fun)(input),
-            };
-            let time = if let Some(repeats) = repeats {
-                Some(
-                    match self {
-                        Part::Numeric(fun) => {
-                            let start = Instant::now();
-                            for _ in 0..repeats.get() {
-                                black_box((fun)(black_box(input)));
-                            }
-                            start.elapsed()
-                        }
-                        Part::Alpha(fun) | Part::Multiline(fun) => {
-                            let start = Instant::now();
-                            for _ in 0..repeats.get() {
-                                black_box((fun)(black_box(input)));
-                            }
-                            start.elapsed()
-                        }
-                    } / repeats.get(),
-                )
+            if !self.long_running {
+                let answer = self.fun.call(input);
+                let time = if let Some(reps) = repeats {
+                    Some(self.fun.time(input, reps.get()))
+                } else {
+                    None
+                };
+                Measurements {
+                    answer,
+                    time,
+                    multiline: self.multiline,
+                }
             } else {
-                None
-            };
-
-            Measurements {
-                answer,
-                time,
-                multiline: self.is_multiline(),
+                log::info!("Checking long running solution");
+                let s = Instant::now();
+                let answer = self.fun.call(input);
+                let time = if repeats.is_some() {
+                    Some(s.elapsed())
+                } else {
+                    None
+                };
+                Measurements {
+                    answer,
+                    time,
+                    multiline: self.multiline,
+                }
             }
         })
         .map_err(|err| match err.downcast::<String>() {
@@ -82,14 +260,6 @@ impl Part {
             },
         })
     }
-
-    /// Returns `true` if the part is [`Multiline`].
-    ///
-    /// [`Multiline`]: Part::Multiline
-    #[must_use]
-    pub fn is_multiline(&self) -> bool {
-        matches!(self, Self::Multiline(..))
-    }
 }
 
 #[derive(Debug)]
@@ -100,15 +270,33 @@ pub struct Day {
     filters: Rc<Filters>,
 }
 impl Day {
-    pub fn add_part_1(&mut self, sol: Part) -> &mut Self {
+    pub fn add_part_1(
+        &mut self,
+        fun: impl Into<PartFn>,
+        multiline: bool,
+        long_running: bool,
+    ) -> &mut Self {
         if self.filters.accept_part(self.day.0, self.day.1, 1) {
-            self.parts[0] = Some(sol);
+            self.parts[0] = Some(Part {
+                fun: fun.into(),
+                multiline,
+                long_running,
+            });
         }
         self
     }
-    pub fn add_part_2(&mut self, sol: Part) -> &mut Self {
+    pub fn add_part_2(
+        &mut self,
+        fun: impl Into<PartFn>,
+        multiline: bool,
+        long_running: bool,
+    ) -> &mut Self {
         if self.filters.accept_part(self.day.0, self.day.1, 2) {
-            self.parts[1] = Some(sol);
+            self.parts[1] = Some(Part {
+                fun: fun.into(),
+                multiline,
+                long_running,
+            });
         }
         self
     }
@@ -121,6 +309,7 @@ impl Day {
         if self.parts.iter().all(|p| p.is_none()) {
             return Ok([None, None]);
         }
+        log::info!("Measuring day {}", self.day.1);
         let input = read_to_string(
             inputs
                 .join(self.day.0.to_string())
@@ -159,6 +348,7 @@ impl Year {
         repeats: Option<NonZeroU32>,
         inputs: &Path,
     ) -> BTreeMap<u8, io::Result<[Option<Result<Measurements, FailedMeasurements>>; 2]>> {
+        log::info!("Measuring year {}", self.year);
         self.solutions
             .iter()
             .map(|(day, sols)| (*day, sols.measure(repeats, inputs)))
@@ -244,6 +434,7 @@ where
     F: FnOnce(&mut Library),
 {
     let repeats = NonZeroU32::new(repeats);
+    log::info!("Parsing databases");
     let answers = match answers {
         Some(Some(answers)) => Some(read_answers(&answers).context("Cannot read answer file")?),
         Some(None) => Some(
@@ -270,7 +461,7 @@ where
     }
     // Empty baseline if nothing is given
     .unwrap_or_default();
-    // building library
+    log::info!("Building library");
     let library = {
         let mut lib = Library {
             solutions: BTreeMap::new(),
@@ -279,16 +470,17 @@ where
         (build)(&mut lib);
         lib
     };
-    // executing tests
+    log::info!("Executing tests");
     let measures = library.measure(repeats, &inputs);
     // saving baselines
     if let Some(save_baseline) = save_baseline {
+        log::info!("Saving baselines");
         if let Err(err) = dump_baseline(&save_baseline, &measures) {
             log::warn!("Failed to save baselines: {err:?}")
         }
     }
 
-    // building a report
+    log::info!("Building report");
     let report = Report::new(library.filters, measures, answers, baseline);
 
     print!(
@@ -299,6 +491,7 @@ where
 }
 
 fn html_page(report: Report) -> Result<impl Display, fmt::Error> {
+    log::info!("Rendering report");
     let mut buf = Buffer::new();
     buf.doctype();
     let mut head = buf.head();
@@ -445,6 +638,13 @@ where
     T: Into<OsString> + Clone,
     F: FnOnce(&mut Library),
 {
+    simple_logger::SimpleLogger::new()
+        .without_timestamps()
+        .with_colors(true)
+        .with_level(log::LevelFilter::Info)
+        .env()
+        .init()
+        .unwrap();
     if let Err(err) = main(build, Args::parse_from(args)) {
         log::error!("Fatal error: {err:?}");
         exit(1)

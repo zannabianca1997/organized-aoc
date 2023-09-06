@@ -16,7 +16,7 @@ logger = getLogger(__name__)
 @dataclass
 class Part:
     fun: str
-    numeric: bool = True
+    long_running: bool = False
     multiline: bool = False
 
 
@@ -119,26 +119,30 @@ def update(
             for day, pkg in sols.items():
                 print(f".add_day({day},|d|{{d", file=main_rs, end="")
                 if pkg.part1 is not None:
-                    if pkg.part1.numeric:
-                        variant = "Numeric"
-                    elif pkg.part1.multiline:
-                        variant = "Multiline"
+                    if pkg.part1.multiline:
+                        multiline = "true"
                     else:
-                        variant = "Alpha"
+                        multiline = "false"
+                    if pkg.part1.long_running:
+                        long_running = "true"
+                    else:
+                        long_running = "false"
                     print(
-                        f".add_part_1(::{runner_name}::Part::{variant}(::{pkg.name}::{pkg.part1.fun}))",
+                        f".add_part_1(::{pkg.name}::{pkg.part1.fun} as fn(&str)->_, {multiline}, {long_running})",
                         file=main_rs,
                         end="",
                     )
                 if pkg.part2 is not None:
-                    if pkg.part2.numeric:
-                        variant = "Numeric"
-                    elif pkg.part2.multiline:
-                        variant = "Multiline"
+                    if pkg.part2.multiline:
+                        multiline = "true"
                     else:
-                        variant = "Alpha"
+                        multiline = "false"
+                    if pkg.part2.long_running:
+                        long_running = "true"
+                    else:
+                        long_running = "false"
                     print(
-                        f".add_part_2(::{runner_name}::Part::{variant}(::{pkg.name}::{pkg.part2.fun}))",
+                        f".add_part_2(::{pkg.name}::{pkg.part2.fun} as fn(&str)->_, {multiline}, {long_running})",
                         file=main_rs,
                         end="",
                     )

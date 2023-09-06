@@ -1,3 +1,3 @@
 [workspace]
-members = [ "runner", "library", "solutions/2015/1", "solutions/2015/2", "solutions/2015/3",]
+members = [ "runner", "library", "solutions/2015/1", "solutions/2015/2", "solutions/2015/3", "solutions/2015/4",]
 resolver = "2"
