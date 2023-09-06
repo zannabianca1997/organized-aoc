@@ -9,7 +9,6 @@ use std::{
 
 use either::Either::{self, Left, Right};
 use html_builder::{Html5, Node};
-use serde::de;
 
 use crate::{filters::Filters, Answers, Baseline, Baselines, FailedMeasurements, Measurements};
 
