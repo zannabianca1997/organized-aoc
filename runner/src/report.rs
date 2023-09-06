@@ -378,7 +378,7 @@ impl Part {
         let correctedness_class = match self.stats.correct {
             Some(true) => "correct",
             Some(false) => "wrong",
-            None => "unknow-correctedness",
+            None => "unknown-correctedness",
         };
         let part = match self.part {
             1 => "first",
@@ -437,7 +437,7 @@ impl Stats {
         let correctedness_class = match self.correct {
             Some(true) => "correct",
             Some(false) => "wrong",
-            None => "unknow-correctedness",
+            None => "unknown-correctedness",
         };
         {
             let mut time_td = row.td().attr(&format!(
@@ -445,7 +445,7 @@ impl Stats {
                 if self.time.is_some() {
                     "known"
                 } else {
-                    "unknown"
+                    "missing"
                 }
             ));
             if let Some(time) = self.time {
@@ -454,14 +454,14 @@ impl Stats {
                     time_td.br();
                     if previous_time <= time {
                         writeln!(
-                            time_td.em().attr("class='time-diff faster'"),
-                            "[- {}]",
+                            time_td.em().attr("class='time-diff slower'"),
+                            "[+ {}]",
                             humantime::format_duration(time - previous_time)
                         )?;
                     } else {
                         writeln!(
-                            time_td.em().attr("class='time-diff slower'"),
-                            "[+ {}]",
+                            time_td.em().attr("class='time-diff faster'"),
+                            "[- {}]",
                             humantime::format_duration(previous_time - time)
                         )?;
                     }

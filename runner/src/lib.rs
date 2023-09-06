@@ -7,6 +7,7 @@ use std::{
     fs::{read_to_string, File},
     hint::black_box,
     io,
+    num::NonZeroU32,
     panic::catch_unwind,
     path::{Path, PathBuf},
     process::exit,
@@ -29,26 +30,36 @@ pub enum Part {
     Multiline(fn(&str) -> String),
 }
 impl Part {
-    fn measure(&self, bench: bool, input: &str) -> Result<Measurements, FailedMeasurements> {
+    fn measure(
+        &self,
+        repeats: Option<NonZeroU32>,
+        input: &str,
+    ) -> Result<Measurements, FailedMeasurements> {
         catch_unwind(|| {
             // first run it once to find the answer
             let answer = match self {
                 Part::Numeric(fun) => (fun)(input).to_string(),
                 Part::Alpha(fun) | Part::Multiline(fun) => (fun)(input),
             };
-            let time = if bench {
-                Some(match self {
-                    Part::Numeric(fun) => {
-                        let start = Instant::now();
-                        black_box((fun)(black_box(input)));
-                        start.elapsed()
-                    }
-                    Part::Alpha(fun) | Part::Multiline(fun) => {
-                        let start = Instant::now();
-                        black_box((fun)(black_box(input)));
-                        start.elapsed()
-                    }
-                })
+            let time = if let Some(repeats) = repeats {
+                Some(
+                    match self {
+                        Part::Numeric(fun) => {
+                            let start = Instant::now();
+                            for _ in 0..repeats.get() {
+                                black_box((fun)(black_box(input)));
+                            }
+                            start.elapsed()
+                        }
+                        Part::Alpha(fun) | Part::Multiline(fun) => {
+                            let start = Instant::now();
+                            for _ in 0..repeats.get() {
+                                black_box((fun)(black_box(input)));
+                            }
+                            start.elapsed()
+                        }
+                    } / repeats.get(),
+                )
             } else {
                 None
             };
@@ -104,7 +115,7 @@ impl Day {
 
     fn measure(
         &self,
-        bench: bool,
+        repeats: Option<NonZeroU32>,
         inputs: &Path,
     ) -> Result<[Option<Result<Measurements, FailedMeasurements>>; 2], io::Error> {
         if self.parts.iter().all(|p| p.is_none()) {
@@ -115,7 +126,7 @@ impl Day {
                 .join(self.day.0.to_string())
                 .join(self.day.1.to_string()),
         )?;
-        Ok(self.parts.map(|p| p.map(|p| p.measure(bench, &input))))
+        Ok(self.parts.map(|p| p.map(|p| p.measure(repeats, &input))))
     }
 }
 
@@ -145,12 +156,12 @@ impl Year {
 
     fn measure(
         &self,
-        bench: bool,
+        repeats: Option<NonZeroU32>,
         inputs: &Path,
     ) -> BTreeMap<u8, io::Result<[Option<Result<Measurements, FailedMeasurements>>; 2]>> {
         self.solutions
             .iter()
-            .map(|(day, sols)| (*day, sols.measure(bench, inputs)))
+            .map(|(day, sols)| (*day, sols.measure(repeats, inputs)))
             .collect()
     }
 }
@@ -181,7 +192,7 @@ impl Library {
 
     fn measure(
         &self,
-        bench: bool,
+        repeats: Option<NonZeroU32>,
         inputs: &Path,
     ) -> BTreeMap<
         u16,
@@ -189,7 +200,7 @@ impl Library {
     > {
         self.solutions
             .iter()
-            .map(|(year, sols)| (*year, sols.measure(bench, inputs)))
+            .map(|(year, sols)| (*year, sols.measure(repeats, inputs)))
             .collect()
     }
 }
@@ -199,9 +210,9 @@ struct Args {
     #[clap(default_value_t)]
     /// What problems to run
     problems: filters::Filters,
-    /// Do not measure the running time of the solutions
-    #[clap(long)]
-    dont_bench: bool,
+    /// Number of repeats used to measure running time (0 to not measure times)
+    #[clap(long, short, default_value = "1")]
+    repeats: u32,
     /// Directory for the inputs
     #[clap(long, short, default_value = "./inputs")]
     inputs: PathBuf,
@@ -222,7 +233,7 @@ fn main<F>(
     build: F,
     Args {
         problems,
-        dont_bench,
+        repeats,
         inputs,
         answers,
         baseline,
@@ -232,7 +243,7 @@ fn main<F>(
 where
     F: FnOnce(&mut Library),
 {
-    let bench = !dont_bench;
+    let repeats = NonZeroU32::new(repeats);
     let answers = match answers {
         Some(Some(answers)) => Some(read_answers(&answers).context("Cannot read answer file")?),
         Some(None) => Some(
@@ -269,7 +280,7 @@ where
         lib
     };
     // executing tests
-    let measures = library.measure(bench, &inputs);
+    let measures = library.measure(repeats, &inputs);
     // saving baselines
     if let Some(save_baseline) = save_baseline {
         if let Err(err) = dump_baseline(&save_baseline, &measures) {
