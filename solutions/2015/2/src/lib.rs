@@ -21,14 +21,14 @@ where
     T::min(a, T::min(b, c))
 }
 
-pub fn part1(input: &str) -> i64 {
+pub fn part1(input: &str) -> usize {
     parse(input)
         .map(|[l, w, h]| 2 * l * w + 2 * w * h + 2 * h * l + min3(l * w, w * h, h * l))
-        .sum::<usize>() as _
+        .sum()
 }
 
-pub fn part2(input: &str) -> i64 {
+pub fn part2(input: &str) -> usize {
     parse(input)
         .map(|[l, w, h]| 2 * min3(l + w, w + h, h + l) + l * w * h)
-        .sum::<usize>() as _
+        .sum()
 }

@@ -9,8 +9,8 @@ pub fn part1(input: &str) -> i64 {
         .sum()
 }
 
-pub fn part2(input: &str) -> i64 {
-    (input
+pub fn part2(input: &str) -> usize {
+    input
         .bytes()
         .map(|b| match b {
             b'(' => 1,
@@ -23,7 +23,7 @@ pub fn part2(input: &str) -> i64 {
         })
         .take_while(|h| *h >= 0)
         .count()
-        + 1) as _
+        + 1
 }
 
 #[cfg(test)]

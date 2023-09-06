@@ -1,7 +1,7 @@
 #![feature(array_chunks)]
 use std::collections::BTreeSet;
 
-pub fn part1(input: &str) -> i64 {
+pub fn part1(input: &str) -> usize {
     let mut visited = BTreeSet::from([[0, 0]]);
     let mut x = 0isize;
     let mut y = 0isize;
@@ -15,10 +15,10 @@ pub fn part1(input: &str) -> i64 {
         }
         visited.insert([x, y]);
     }
-    visited.len() as _
+    visited.len()
 }
 
-pub fn part2(input: &str) -> i64 {
+pub fn part2(input: &str) -> usize {
     let mut visited = BTreeSet::from([[0, 0]]);
     let mut x = 0isize;
     let mut y = 0isize;
@@ -53,5 +53,5 @@ pub fn part2(input: &str) -> i64 {
         }
         visited.insert([x, y]);
     }
-    visited.len() as _
+    visited.len()
 }
