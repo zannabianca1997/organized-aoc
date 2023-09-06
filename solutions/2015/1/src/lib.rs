@@ -10,7 +10,7 @@ pub fn part1(input: &str) -> i64 {
 }
 
 pub fn part2(input: &str) -> i64 {
-    input
+    (input
         .bytes()
         .map(|b| match b {
             b'(' => 1,
@@ -22,5 +22,15 @@ pub fn part2(input: &str) -> i64 {
             Some(*s)
         })
         .take_while(|h| *h >= 0)
-        .count() as _
+        .count()
+        + 1) as _
+}
+
+#[cfg(test)]
+mod examples {
+    #[test]
+    fn part2() {
+        assert_eq!(super::part2(")"), 1);
+        assert_eq!(super::part2("()())"), 5);
+    }
 }

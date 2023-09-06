@@ -1,0 +1,38 @@
+table.container {
+    border: solid 1px;
+}
+
+table.container :is(td, th) {
+    border: solid 1px;
+}
+
+td.part.answer,
+td.check {
+    text-align: center;
+}
+
+td.part.answer.correct {
+    background-color: lightgreen;
+}
+
+td.part.answer.wrong {
+    background-color: lightcoral;
+}
+
+td.part.answer.unknow-correctedness {
+    background-color: lightgray;
+}
+
+.missing {
+    background-color: lightgray;
+    text-align: center;
+}
+
+td.part.failed {
+    background-color: coral;
+}
+
+pre.multiline.content {
+    background-color: lightgray;
+    border: 1px solid;
+}
