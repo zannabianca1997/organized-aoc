@@ -176,19 +176,17 @@ if __name__ == "__main__":
         usage="%(prog)s [-h] [--workspace WORKSPACE] [--runner RUNNER] [--solutions SOLUTIONS] [--library LIBRARY] [CARGO_ARGS]",
     )
     parser.add_argument(
-        "--workspace", "-w", action="store", help="Path to the workspace Cargo.toml"
+        "--workspace", action="store", help="Path to the workspace Cargo.toml"
+    )
+    parser.add_argument("--runner", action="store", help="Path to the runner library")
+    parser.add_argument(
+        "--solutions", action="store", help="Path to the solution library"
     )
     parser.add_argument(
-        "--runner", "-r", action="store", help="Path to the runner library"
+        "--library", action="store", help="Where to generate the library"
     )
     parser.add_argument(
-        "--solutions", "-s", action="store", help="Path to the solution library"
-    )
-    parser.add_argument(
-        "--library", "-l", action="store", help="Where to generate the library"
-    )
-    parser.add_argument(
-        "--cargo", "-c", action="store", help="Cargo command", default="cargo"
+        "--cargo", action="store", help="Cargo command", default="cargo"
     )
     (args, cargo_args) = parser.parse_known_args()
 
