@@ -88,5 +88,36 @@ pub fn part1(input: &str) -> usize {
 }
 
 pub fn part2(input: &str) -> usize {
-    todo!()
+    let mut rects = vec![(
+        0usize,
+        Rect {
+            minx: 0,
+            maxx: 1000,
+            miny: 0,
+            maxy: 1000,
+        },
+    )];
+    for Instruction {
+        command,
+        rect: affected_rect,
+    } in parse(input)
+    {
+        let mut new_rects = vec![];
+        let delta = match command {
+            Command::On => 1,
+            Command::Off => -1,
+            Command::Toggle => 2,
+        };
+        for (state, rect) in rects {
+            let (outside, inside) = affected_rect.cut(rect);
+            // unaffected parts
+            new_rects.extend(outside.into_iter().map(|r| (state, r)));
+            if let Some(inside) = inside {
+                // toggle
+                new_rects.push((state.saturating_add_signed(delta), inside))
+            }
+        }
+        rects = new_rects;
+    }
+    rects.into_iter().map(|(s, r)| s * r.area()).sum()
 }
