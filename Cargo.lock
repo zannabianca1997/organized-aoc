@@ -57,6 +57,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
+name = "aoc_2015_"
+version = "0.1.0"
+
+[[package]]
 name = "aoc_2015_1"
 version = "0.1.0"
 
@@ -297,6 +301,7 @@ checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 name = "library"
 version = "0.1.0"
 dependencies = [
+ "aoc_2015_",
  "aoc_2015_1",
  "aoc_2015_2",
  "aoc_2015_3",
