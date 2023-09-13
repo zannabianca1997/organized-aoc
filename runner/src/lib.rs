@@ -317,6 +317,10 @@ impl Day {
         )?;
         Ok(self.parts.map(|p| p.map(|p| p.measure(repeats, &input))))
     }
+
+    fn is_empty(&self) -> bool {
+        self.parts.iter().all(|p| p.is_none())
+    }
 }
 
 #[derive(Debug)]
@@ -334,11 +338,21 @@ impl Year {
             panic!("Day {day} is invalid, not an advent day")
         }
         if self.filters.accept_day(self.year, day) {
-            (build)(self.solutions.entry(day).or_insert_with(|| Day {
-                parts: [None; 2],
-                day: (self.year, day),
-                filters: self.filters.clone(),
-            }));
+            match self.solutions.entry(day) {
+                std::collections::btree_map::Entry::Vacant(v) => {
+                    let mut entries = Day {
+                        day: (self.year, day),
+                        parts: [None, None],
+                        filters: self.filters.clone(),
+                    };
+                    build(&mut entries);
+                    // do not create empty days
+                    if !entries.is_empty() {
+                        v.insert(entries);
+                    }
+                }
+                std::collections::btree_map::Entry::Occupied(mut entry) => build(entry.get_mut()),
+            }
         }
         self
     }
@@ -353,6 +367,10 @@ impl Year {
             .iter()
             .map(|(day, sols)| (*day, sols.measure(repeats, inputs)))
             .collect()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.solutions.is_empty()
     }
 }
 
@@ -371,11 +389,21 @@ impl Library {
             panic!("Year {year} is invalid, AoC was not present before 2015")
         }
         if self.filters.accept_year(year) {
-            (build)(self.solutions.entry(year).or_insert_with(|| Year {
-                year,
-                solutions: BTreeMap::new(),
-                filters: self.filters.clone(),
-            }));
+            match self.solutions.entry(year) {
+                std::collections::btree_map::Entry::Vacant(v) => {
+                    let mut entries = Year {
+                        year,
+                        solutions: BTreeMap::new(),
+                        filters: self.filters.clone(),
+                    };
+                    build(&mut entries);
+                    // do not create empty years
+                    if !entries.is_empty() {
+                        v.insert(entries);
+                    }
+                }
+                std::collections::btree_map::Entry::Occupied(mut entry) => build(entry.get_mut()),
+            }
         }
         self
     }
