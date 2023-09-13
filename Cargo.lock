@@ -87,6 +87,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc_2015_7"
+version = "0.1.0"
+dependencies = [
+ "arrayvec",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -296,6 +303,7 @@ dependencies = [
  "aoc_2015_4",
  "aoc_2015_5",
  "aoc_2015_6",
+ "aoc_2015_7",
  "runner",
 ]
 
