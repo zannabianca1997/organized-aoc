@@ -56,7 +56,7 @@ where
 
         // find where `self` split `other`
         let mut outside = ArrayVec::new();
-        let mut inside = None;
+        let inside;
         match (
             self.minx > minx,
             self.maxx < maxx,

@@ -13,7 +13,7 @@ enum Command {
     Toggle,
 }
 
-fn parse(input: &str) -> impl Iterator<Item = Instruction> + '_ {
+fn parse(input: &str) -> impl DoubleEndedIterator<Item = Instruction> + '_ {
     input.lines().filter(|s| !s.trim().is_empty()).map(|l| {
         let (command, p1) = match l.as_bytes()[6] {
             b'n' => (Command::On, 2),
@@ -37,54 +37,66 @@ fn parse(input: &str) -> impl Iterator<Item = Instruction> + '_ {
 }
 
 pub fn part1(input: &str) -> usize {
-    let mut rects = vec![(
-        false,
-        Rect {
-            minx: 0,
-            maxx: 1000,
-            miny: 0,
-            maxy: 1000,
-        },
-    )];
+    // remaining rects
+    let mut untoggled = vec![Rect {
+        minx: 0,
+        maxx: 1000,
+        miny: 0,
+        maxy: 1000,
+    }];
+    let mut toggled = vec![];
+    // count of cell found
+    let mut count = 0usize;
+
     for Instruction {
         command,
         rect: affected_rect,
-    } in parse(input)
+    } in parse(input).rev()
     {
-        let mut new_rects = vec![];
+        let mut new_untoggled = vec![];
+        let mut new_toggled = vec![];
+
         match command {
             Command::On => {
-                for (state, rect) in rects {
-                    let (outside, _) = affected_rect.cut(rect);
-                    new_rects.extend(outside.into_iter().map(|r| (state, r)));
+                for rect in untoggled {
+                    let (outside, inside) = affected_rect.cut(rect);
+                    new_untoggled.extend_from_slice(&outside);
+                    count += inside.map_or(0, |r| r.area())
                 }
-                new_rects.push((true, affected_rect))
+                for rect in toggled {
+                    let (outside, _) = affected_rect.cut(rect);
+                    new_toggled.extend_from_slice(&outside);
+                }
             }
             Command::Off => {
-                for (state, rect) in rects {
+                for rect in untoggled {
                     let (outside, _) = affected_rect.cut(rect);
-                    new_rects.extend(outside.into_iter().map(|r| (state, r)));
+                    new_untoggled.extend_from_slice(&outside);
                 }
-                new_rects.push((false, affected_rect))
+                for rect in toggled {
+                    let (outside, inside) = affected_rect.cut(rect);
+                    new_toggled.extend_from_slice(&outside);
+                    count += inside.map_or(0, |r| r.area())
+                }
             }
             Command::Toggle => {
-                for (state, rect) in rects {
+                for rect in untoggled {
                     let (outside, inside) = affected_rect.cut(rect);
-                    // unaffected parts
-                    new_rects.extend(outside.into_iter().map(|r| (state, r)));
-                    if let Some(inside) = inside {
-                        // toggle
-                        new_rects.push((!state, inside))
-                    }
+                    new_untoggled.extend_from_slice(&outside);
+                    new_toggled.extend(inside)
+                }
+                for rect in toggled {
+                    let (outside, inside) = affected_rect.cut(rect);
+                    new_toggled.extend_from_slice(&outside);
+                    new_untoggled.extend(inside)
                 }
             }
         }
-        rects = new_rects;
+
+        untoggled = new_untoggled;
+        toggled = new_toggled;
     }
-    rects
-        .into_iter()
-        .filter_map(|(s, r)| s.then(|| r.area()))
-        .sum()
+    count + toggled.into_iter().map(|r| r.area()).sum::<usize>()
 }
 
 pub fn part2(input: &str) -> usize {
