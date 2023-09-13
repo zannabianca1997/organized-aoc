@@ -93,6 +93,10 @@ pub fn part1(input: &str) -> usize {
             }
         }
 
+        if new_untoggled.is_empty() && new_toggled.is_empty() {
+            return count;
+        }
+
         untoggled = new_untoggled;
         toggled = new_toggled;
     }
