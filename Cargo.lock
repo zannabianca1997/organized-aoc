@@ -57,10 +57,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
-name = "aoc_2015_"
-version = "0.1.0"
-
-[[package]]
 name = "aoc_2015_1"
 version = "0.1.0"
 
@@ -95,6 +91,17 @@ name = "aoc_2015_7"
 version = "0.1.0"
 dependencies = [
  "arrayvec",
+]
+
+[[package]]
+name = "aoc_2015_8"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2015_9"
+version = "0.1.0"
+dependencies = [
+ "grid",
 ]
 
 [[package]]
@@ -224,6 +231,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "grid"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1df00eed8d1f0db937f6be10e46e8072b0671accb504cf0f959c5c52c679f5b9"
+
+[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -301,7 +314,6 @@ checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 name = "library"
 version = "0.1.0"
 dependencies = [
- "aoc_2015_",
  "aoc_2015_1",
  "aoc_2015_2",
  "aoc_2015_3",
@@ -309,6 +321,8 @@ dependencies = [
  "aoc_2015_5",
  "aoc_2015_6",
  "aoc_2015_7",
+ "aoc_2015_8",
+ "aoc_2015_9",
  "runner",
 ]
 
