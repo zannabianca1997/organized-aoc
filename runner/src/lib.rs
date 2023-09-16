@@ -18,6 +18,7 @@ use std::{
 use anyhow::Context;
 use clap::Parser;
 use html_builder::{Buffer, Html5, Node};
+use itertools::Itertools;
 use report::Report;
 use serde::{Deserialize, Serialize, Serializer};
 
@@ -492,7 +493,7 @@ where
         sb.or(baseline.clone().flatten())
             .unwrap_or_else(|| PathBuf::from("./baseline.json"))
     });
-    let baseline = match baseline {
+    let baselines = match baseline {
         Some(Some(baseline)) => {
             Some(read_baseline(&baseline).context("Cannot read baseline file")?)
         }
@@ -518,13 +519,13 @@ where
     // saving baselines
     if let Some(save_baseline) = save_baseline {
         log::info!("Saving baselines");
-        if let Err(err) = dump_baseline(&save_baseline, &measures) {
+        if let Err(err) = dump_baseline(&save_baseline, &measures, &baselines) {
             log::warn!("Failed to save baselines: {err:?}")
         }
     }
 
     log::info!("Building report");
-    let report = Report::new(library.filters, measures, answers, baseline);
+    let report = Report::new(library.filters, measures, answers, baselines);
 
     print!(
         "{}",
@@ -563,12 +564,12 @@ fn html_page(report: Report) -> Result<impl Display, fmt::Error> {
 
 mod report;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default)]
 struct Baseline {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    time: Option<Duration>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     answer: Option<String>,
+    #[serde(default)]
+    time: Option<Duration>,
 }
 type Baselines = BTreeMap<u16, BTreeMap<u8, [Option<Baseline>; 2]>>;
 
@@ -583,65 +584,108 @@ fn dump_baseline(
         u16,
         BTreeMap<u8, Result<[Option<Result<Measurements, FailedMeasurements>>; 2], io::Error>>,
     >,
+    old_baselines: &Baselines,
 ) -> anyhow::Result<()> {
     #[derive(Serialize)]
     struct BorrowedBaseline<'a> {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         answer: Option<&'a str>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         time: Option<&'a Duration>,
     }
+    impl<'a> BorrowedBaseline<'a> {
+        fn from_measurement(Measurements { answer, time, .. }: &'a Measurements) -> Self {
+            Self {
+                answer: Some(&answer),
+                time: time.as_ref(),
+            }
+        }
+        fn from_baseline(Baseline { answer, time }: &'a Baseline) -> Self {
+            Self {
+                answer: answer.as_ref().map(String::as_str),
+                time: time.as_ref(),
+            }
+        }
+    }
 
-    struct Day<'a>(&'a [Option<Result<Measurements, FailedMeasurements>>; 2]);
-    impl Serialize for Day<'_> {
+    struct Day<'a, 'b>(
+        Option<&'a [Option<Result<Measurements, FailedMeasurements>>; 2]>,
+        Option<&'b [Option<Baseline>; 2]>,
+    );
+    impl Serialize for Day<'_, '_> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,
         {
-            serializer.collect_seq(self.0.iter().map(|s| {
-                s.as_ref().map(|r| r.as_ref().ok()).flatten().map(
-                    |Measurements { answer, time, .. }| BorrowedBaseline {
-                        answer: Some(answer),
-                        time: time.as_ref(),
-                    },
+            serializer.collect_seq((0..2).map(|idx| -> Option<BorrowedBaseline<'_>> {
+                self.0
+                    .and_then(|r| r[idx].as_ref())
+                    .and_then(|r| r.as_ref().ok())
+                    .map(BorrowedBaseline::from_measurement)
+                    .or_else(|| {
+                        // recover old baseline
+                        self.1
+                            .and_then(|r| r[idx].as_ref())
+                            .map(BorrowedBaseline::from_baseline)
+                    })
+            }))
+        }
+    }
+
+    struct Year<'a, 'b>(
+        Option<
+            &'a BTreeMap<
+                u8,
+                Result<[Option<Result<Measurements, FailedMeasurements>>; 2], io::Error>,
+            >,
+        >,
+        Option<&'b BTreeMap<u8, [Option<Baseline>; 2]>>,
+    );
+    impl Serialize for Year<'_, '_> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let days = self
+                .0
+                .map(|m| m.iter())
+                .into_iter()
+                .flatten()
+                .filter_map(|(d, r)| r.as_ref().ok().map(|_| d))
+                .chain(self.1.map(|m| m.keys()).into_iter().flatten())
+                .unique();
+            serializer.collect_map(days.map(|d| {
+                (
+                    d,
+                    Day(
+                        self.0.and_then(|m| m.get(d)).and_then(|r| r.as_ref().ok()),
+                        self.1.and_then(|m| m.get(d)),
+                    ),
                 )
             }))
         }
     }
 
-    struct Year<'a>(
-        &'a BTreeMap<u8, Result<[Option<Result<Measurements, FailedMeasurements>>; 2], io::Error>>,
-    );
-    impl Serialize for Year<'_> {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            serializer.collect_map(
-                self.0
-                    .iter()
-                    .filter_map(|(d, s)| s.as_ref().ok().map(|s| (d, Day(s)))),
-            )
-        }
-    }
-
-    struct Measures<'a>(
+    struct NewBaselines<'a, 'b>(
         &'a BTreeMap<
             u16,
             BTreeMap<u8, Result<[Option<Result<Measurements, FailedMeasurements>>; 2], io::Error>>,
         >,
+        &'b Baselines,
     );
-    impl Serialize for Measures<'_> {
+    impl Serialize for NewBaselines<'_, '_> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,
         {
-            serializer.collect_map(self.0.iter().map(|(y, s)| (y, Year(s))))
+            let years = self.0.keys().chain(self.1.keys()).unique();
+            serializer.collect_map(years.map(|y| (y, Year(self.0.get(y), self.1.get(y)))))
         }
     }
 
     let file = File::create(save_baseline).context("Cannot open save file")?;
-    serde_json::to_writer(file, &Measures(measures)).context("Cannot serialize measurements")?;
+    serde_json::to_writer(file, &NewBaselines(measures, old_baselines))
+        .context("Cannot serialize measurements")?;
     Ok(())
 }
 
