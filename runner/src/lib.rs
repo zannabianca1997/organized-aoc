@@ -54,7 +54,8 @@ impl PartFn {
             PartFn::U8(f) => (f)(input).to_string(),
             PartFn::String(f) => (f)(input),
             PartFn::Str(f) => (f)(input).to_string(),
-            PartFn::Bites8(f) => String::from_utf8(Vec::from(f(input))),
+            PartFn::Bites8(f) => String::from_utf8(Vec::from(f(input)))
+                .expect("The solution must return valid utf-8"),
         }
     }
     fn time(&self, input: &str, reps: u32) -> Duration {
