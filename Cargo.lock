@@ -65,6 +65,14 @@ name = "aoc_2015_11"
 version = "0.1.0"
 
 [[package]]
+name = "aoc_2015_12"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "aoc_2015_2"
 version = "0.1.0"
 
@@ -320,6 +328,7 @@ version = "0.1.0"
 dependencies = [
  "aoc_2015_1",
  "aoc_2015_11",
+ "aoc_2015_12",
  "aoc_2015_2",
  "aoc_2015_3",
  "aoc_2015_4",
