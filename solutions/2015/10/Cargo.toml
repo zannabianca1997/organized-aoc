@@ -1,0 +1,23 @@
+[package]
+name = "aoc_2015_10"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+
+[dependencies]
+itertools = "0.11.0"
+
+[build-dependencies]
+anyhow = "1.0.75"
+cargo-emit = "0.2.1"
+either = "1.9.0"
+prettyplease = "0.2.15"
+proc-macro2 = "1.0.67"
+quote = "1.0.33"
+syn = "2.0.37"
