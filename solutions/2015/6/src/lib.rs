@@ -14,7 +14,7 @@ enum Command {
 }
 
 fn parse(input: &str) -> impl DoubleEndedIterator<Item = Instruction> + '_ {
-    input.lines().filter(|s| !s.trim().is_empty()).map(|l| {
+    input.trim().lines().map(|l| {
         let (command, p1) = match l.as_bytes()[6] {
             b'n' => (Command::On, 2),
             b'f' => (Command::Off, 2),

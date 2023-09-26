@@ -92,7 +92,7 @@ impl FromStr for Sequence {
 }
 
 pub fn part1(input: &str) -> usize {
-    let mut seq: Sequence = input.parse().into_ok();
+    let mut seq: Sequence = input.trim().parse().into_ok();
     for _ in 0..40 {
         seq = seq.step()
     }

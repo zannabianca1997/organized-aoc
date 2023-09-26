@@ -1,16 +1,11 @@
 fn parse(input: &str) -> impl Iterator<Item = [usize; 3]> + '_ {
-    input.lines().filter_map(|l| {
-        let l = l.trim();
-        if l != "" {
-            let mut l = l.splitn(3, 'x');
-            Some([
-                l.next().unwrap().parse().unwrap(),
-                l.next().unwrap().parse().unwrap(),
-                l.next().unwrap().parse().unwrap(),
-            ])
-        } else {
-            None
-        }
+    input.trim().lines().map(|l| {
+        let mut l = l.splitn(3, 'x');
+        [
+            l.next().unwrap().parse().unwrap(),
+            l.next().unwrap().parse().unwrap(),
+            l.next().unwrap().parse().unwrap(),
+        ]
     })
 }
 

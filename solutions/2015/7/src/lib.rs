@@ -50,8 +50,8 @@ impl<'i> Input<'i> {
     fn parse(input: &str) -> Input<'_> {
         Input {
             wires: input
+                .trim()
                 .lines()
-                .filter(|l| !l.trim().is_empty())
                 .map(|l| {
                     let (a, b) = l.split_once("->").unwrap();
                     let expr_parts: ArrayVec<_, 3> = a.split_ascii_whitespace().collect();

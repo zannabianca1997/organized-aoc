@@ -2,8 +2,8 @@
 
 pub fn part1(input: &str) -> usize {
     input
+        .trim()
         .lines()
-        .filter(|l| !l.trim().is_empty())
         .map(|l| {
             let mut bytes = l[1..l.len() - 1].bytes();
             let mut diff = 2;
