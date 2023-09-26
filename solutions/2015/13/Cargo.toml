@@ -1,0 +1,15 @@
+[package]
+name = "aoc_2015_13"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+
+[dependencies]
+grid = "0.11.0"
+itertools = "0.11.0"
