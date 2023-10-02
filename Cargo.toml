@@ -1,3 +1,3 @@
 [workspace]
-members = [ "runner", "library", "commons/rects", "solutions/2015/1", "solutions/2015/10", "solutions/2015/11", "solutions/2015/12", "solutions/2015/13", "solutions/2015/14", "solutions/2015/15", "solutions/2015/16", "solutions/2015/2", "solutions/2015/3", "solutions/2015/4", "solutions/2015/5", "solutions/2015/6", "solutions/2015/7", "solutions/2015/8", "solutions/2015/9",]
+members = [ "runner", "library", "commons/rects", "solutions/2015/1", "solutions/2015/10", "solutions/2015/11", "solutions/2015/12", "solutions/2015/13", "solutions/2015/14", "solutions/2015/15", "solutions/2015/16", "solutions/2015/17", "solutions/2015/2", "solutions/2015/3", "solutions/2015/4", "solutions/2015/5", "solutions/2015/6", "solutions/2015/7", "solutions/2015/8", "solutions/2015/9",]
 resolver = "2"
