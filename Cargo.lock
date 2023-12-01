@@ -111,6 +111,13 @@ name = "aoc_2015_17"
 version = "0.1.0"
 
 [[package]]
+name = "aoc_2015_18"
+version = "0.1.0"
+dependencies = [
+ "grid",
+]
+
+[[package]]
 name = "aoc_2015_2"
 version = "0.1.0"
 
@@ -153,6 +160,10 @@ version = "0.1.0"
 dependencies = [
  "grid",
 ]
+
+[[package]]
+name = "aoc_2023_1"
+version = "0.1.0"
 
 [[package]]
 name = "arrayvec"
@@ -379,6 +390,7 @@ dependencies = [
  "aoc_2015_15",
  "aoc_2015_16",
  "aoc_2015_17",
+ "aoc_2015_18",
  "aoc_2015_2",
  "aoc_2015_3",
  "aoc_2015_4",
@@ -387,6 +399,7 @@ dependencies = [
  "aoc_2015_7",
  "aoc_2015_8",
  "aoc_2015_9",
+ "aoc_2023_1",
  "runner",
 ]
 
