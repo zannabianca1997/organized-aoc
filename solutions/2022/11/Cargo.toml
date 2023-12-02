@@ -1,0 +1,15 @@
+[package]
+name = "aoc_2022_11"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+
+[dependencies]
+lazy_static = "1.4.0"
+regex = "1.10.2"

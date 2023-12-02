@@ -3,6 +3,15 @@
 version = 3
 
 [[package]]
+name = "aho-corasick"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2969dcb958b36655471fc61f7e416fa76033bdd4bfed0678d8fee1e2d07a1f0"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "anstream"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -90,7 +99,7 @@ dependencies = [
 name = "aoc_2015_13"
 version = "0.1.0"
 dependencies = [
- "grid",
+ "grid 0.11.0",
  "itertools",
 ]
 
@@ -114,8 +123,12 @@ version = "0.1.0"
 name = "aoc_2015_18"
 version = "0.1.0"
 dependencies = [
- "grid",
+ "grid 0.11.0",
 ]
+
+[[package]]
+name = "aoc_2015_19"
+version = "0.1.0"
 
 [[package]]
 name = "aoc_2015_2"
@@ -158,11 +171,152 @@ version = "0.1.0"
 name = "aoc_2015_9"
 version = "0.1.0"
 dependencies = [
- "grid",
+ "grid 0.11.0",
 ]
 
 [[package]]
+name = "aoc_2022_1"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_10"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_11"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "aoc_2022_12"
+version = "0.1.0"
+dependencies = [
+ "arrayvec",
+ "grid 0.1.0",
+]
+
+[[package]]
+name = "aoc_2022_13"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_14"
+version = "0.1.0"
+dependencies = [
+ "grid 0.1.0",
+]
+
+[[package]]
+name = "aoc_2022_15"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "aoc_2022_16"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "aoc_2022_17"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_18"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_19"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "aoc_2022_2"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_20"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_21"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_22"
+version = "0.1.0"
+dependencies = [
+ "grid 0.12.0",
+ "termion",
+]
+
+[[package]]
+name = "aoc_2022_23"
+version = "0.1.0"
+dependencies = [
+ "grid 0.12.0",
+]
+
+[[package]]
+name = "aoc_2022_24"
+version = "0.1.0"
+dependencies = [
+ "arrayvec",
+ "grid 0.12.0",
+]
+
+[[package]]
+name = "aoc_2022_25"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_3"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_4"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_5"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_6"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_7"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2022_8"
+version = "0.1.0"
+dependencies = [
+ "grid 0.1.0",
+]
+
+[[package]]
+name = "aoc_2022_9"
+version = "0.1.0"
+
+[[package]]
 name = "aoc_2023_1"
+version = "0.1.0"
+
+[[package]]
+name = "aoc_2023_2"
 version = "0.1.0"
 
 [[package]]
@@ -299,9 +453,19 @@ dependencies = [
 
 [[package]]
 name = "grid"
+version = "0.1.0"
+
+[[package]]
+name = "grid"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1df00eed8d1f0db937f6be10e46e8072b0671accb504cf0f959c5c52c679f5b9"
+
+[[package]]
+name = "grid"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1584ff6141ecb0340eeb8be523d027e3e1fe92ae34d9380a98ea991d65c564cc"
 
 [[package]]
 name = "heck"
@@ -391,6 +555,7 @@ dependencies = [
  "aoc_2015_16",
  "aoc_2015_17",
  "aoc_2015_18",
+ "aoc_2015_19",
  "aoc_2015_2",
  "aoc_2015_3",
  "aoc_2015_4",
@@ -399,8 +564,45 @@ dependencies = [
  "aoc_2015_7",
  "aoc_2015_8",
  "aoc_2015_9",
+ "aoc_2022_1",
+ "aoc_2022_10",
+ "aoc_2022_11",
+ "aoc_2022_12",
+ "aoc_2022_13",
+ "aoc_2022_14",
+ "aoc_2022_15",
+ "aoc_2022_16",
+ "aoc_2022_17",
+ "aoc_2022_18",
+ "aoc_2022_19",
+ "aoc_2022_2",
+ "aoc_2022_20",
+ "aoc_2022_21",
+ "aoc_2022_22",
+ "aoc_2022_23",
+ "aoc_2022_24",
+ "aoc_2022_25",
+ "aoc_2022_3",
+ "aoc_2022_4",
+ "aoc_2022_5",
+ "aoc_2022_6",
+ "aoc_2022_7",
+ "aoc_2022_8",
+ "aoc_2022_9",
  "aoc_2023_1",
+ "aoc_2023_2",
  "runner",
+]
+
+[[package]]
+name = "libredox"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3af92c55d7d839293953fcd0fda5ecfe93297cfde6ffbdec13b41d99c0ba6607"
+dependencies = [
+ "bitflags 2.4.0",
+ "libc",
+ "redox_syscall",
 ]
 
 [[package]]
@@ -422,6 +624,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
 
 [[package]]
+name = "memchr"
+version = "2.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f665ee40bc4a3c5590afb1e9677db74a508659dfd71e126420da8274909a0167"
+
+[[package]]
 name = "num_threads"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -429,6 +637,12 @@ checksum = "2819ce041d2ee131036f4fc9d6ae7ae125a3a40e97ba64d04fe799ad9dabbb44"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "numtoa"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8f8bdf33df195859076e54ab11ee78a1b208382d3a26ec40d142ffc1ecc49ef"
 
 [[package]]
 name = "prettyplease"
@@ -464,6 +678,50 @@ version = "0.1.0"
 dependencies = [
  "arrayvec",
 ]
+
+[[package]]
+name = "redox_syscall"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4722d768eff46b75989dd134e5c353f0d6296e5aaa3132e776cbdb56be7731aa"
+dependencies = [
+ "bitflags 1.3.2",
+]
+
+[[package]]
+name = "redox_termios"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20145670ba436b55d91fc92d25e71160fbfbdd57831631c8d7d36377a476f1cb"
+
+[[package]]
+name = "regex"
+version = "1.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "380b951a9c5e80ddfd6136919eef32310721aa4aacd4889a8d39124b026ab343"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
+name = "regex-automata"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f804c7828047e88b2d32e2d7fe5a105da8ee3264f01902f796c8e067dc2483f"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-syntax",
+]
+
+[[package]]
+name = "regex-syntax"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "runner"
@@ -559,6 +817,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "termion"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4648c7def6f2043b2568617b9f9b75eae88ca185dbc1f1fda30e95a85d49d7d"
+dependencies = [
+ "libc",
+ "libredox",
+ "numtoa",
+ "redox_termios",
 ]
 
 [[package]]

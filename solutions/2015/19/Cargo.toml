@@ -1,0 +1,11 @@
+[package]
+name = "aoc_2015_19"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+
+
+[dependencies]
