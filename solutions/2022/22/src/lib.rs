@@ -268,6 +268,9 @@ fn put_wrapping_warps(mut field: Grid<Tile>) -> Grid<Tile> {
         // go to the field
         while let Some(Tile::Extern | Tile::Warp(_)) = field.get(row, col) {
             col -= 1;
+            if col == 0 {
+                break;
+            }
         }
         let warp_dest =
             (field.get(row, col) == Some(&Tile::Space)).then(|| (row, col, Turn::Nothing));
@@ -327,6 +330,9 @@ fn put_wrapping_warps(mut field: Grid<Tile>) -> Grid<Tile> {
         // go to the field
         while let Some(Tile::Extern | Tile::Warp(_)) = field.get(row, col) {
             row -= 1;
+            if row == 0 {
+                break;
+            }
         }
         let warp_dest =
             (field.get(row, col) == Some(&Tile::Space)).then(|| (row, col, Turn::Nothing));
@@ -580,7 +586,7 @@ pub fn part2(input: &str) -> usize {
     let ((mut pos, field), (segments, turns)) = parse_input(input);
     let field = put_cube_warps(field);
 
-    //guided(pos, &field)?;
+    // guided(pos, &field);
 
     for (segment, turn) in segments.iter().zip(turns.iter()) {
         pos = advance(pos, *segment, &field);

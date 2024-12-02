@@ -1,6 +1,5 @@
 #![feature(iter_next_chunk)]
 #![feature(array_windows)]
-#![feature(array_methods)]
 
 use std::mem;
 

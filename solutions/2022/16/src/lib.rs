@@ -1,4 +1,3 @@
-#![feature(slice_group_by)]
 use std::collections::HashMap;
 
 use lazy_static::lazy_static;
@@ -75,50 +74,23 @@ fn parse_input<'a>(input: &'a str) -> (usize, Vec<usize>, Vec<Vec<usize>>) {
     (name_id("AA"), flows, distances)
 }
 
-#[cfg(feature = "2022_16_bitmaps")]
-type Valves = u64;
-#[cfg(not(feature = "2022_16_bitmaps"))]
 type Valves = Vec<bool>;
 
-#[cfg(feature = "2022_16_bitmaps")]
-#[inline]
-fn get_valve(v: &Valves, i: usize) -> bool {
-    (*v >> i) & 1 != 0
-}
-#[cfg(not(feature = "2022_16_bitmaps"))]
 #[inline]
 fn get_valve(v: &Valves, i: usize) -> bool {
     v[i]
 }
 
 #[inline]
-#[cfg(feature = "2022_16_bitmaps")]
-fn open_valve(v: Valves, i: usize) -> Valves {
-    v | (1 << i)
-}
-#[inline]
-#[cfg(not(feature = "2022_16_bitmaps"))]
 fn open_valve(mut v: Valves, i: usize) -> Valves {
     v[i] = true;
     v
 }
 #[inline]
-#[cfg(feature = "2022_16_bitmaps")]
-fn empty_valves(_nodes_num: usize) -> Valves {
-    0
-}
-#[inline]
-#[cfg(not(feature = "2022_16_bitmaps"))]
 fn empty_valves(nodes_num: usize) -> Valves {
     vec![false; nodes_num]
 }
 #[inline]
-#[cfg(feature = "2022_16_bitmaps")]
-fn are_disjointed(valves_1: &Valves, valves_2: &Valves) -> bool {
-    (valves_1 & valves_2) == 0
-}
-#[inline]
-#[cfg(not(feature = "2022_16_bitmaps"))]
 fn are_disjointed(valves_1: &Valves, valves_2: &Valves) -> bool {
     valves_1
         .iter()
@@ -132,13 +104,6 @@ fn paths(
     flows: &[usize],
     distances: &[&[usize]],
 ) -> Vec<(Valves, usize)> {
-    #[cfg(feature = "2022_16_bitmaps")]
-    assert!(
-        flows.len() <= Valves::BITS as _,
-        "Bitmaps can be used only with less than {} nodes",
-        Valves::BITS
-    );
-
     let mut paths: Vec<(usize, usize, (Valves, usize))> =
         vec![(pos, minutes, (empty_valves(flows.len()), 0))];
     let mut complete_paths = vec![];
@@ -202,7 +167,7 @@ pub fn part2(input: &str) -> usize {
     // erasing duplicates keeping only the max for each valve configuration
     flows.sort_unstable_by(|(vs1, _), (vs2, _)| vs1.cmp(vs2));
     let flows: Vec<&(Valves, usize)> = flows
-        .group_by(|(vs1, _), (vs2, _)| vs1 == vs2)
+        .chunk_by(|(vs1, _), (vs2, _)| vs1 == vs2)
         .map(|run| run.iter().max_by_key(|(_, flow)| flow).unwrap())
         .collect();
 

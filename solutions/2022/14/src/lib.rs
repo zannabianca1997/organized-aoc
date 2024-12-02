@@ -1,6 +1,7 @@
+#![feature(array_windows)]
 use grid::Grid;
 
-fn parse_input(input: &str) -> Vec<Vec<(usize, usize)>> {
+fn parse_input(input: &str) -> Vec<Vec<(isize, isize)>> {
     input
         .trim()
         .lines()
@@ -16,10 +17,10 @@ fn parse_input(input: &str) -> Vec<Vec<(usize, usize)>> {
 }
 
 fn make_field(
-    input: Vec<Vec<(usize, usize)>>,
-    drop_pos: (usize, usize),
+    input: Vec<Vec<(isize, isize)>>,
+    drop_pos: (isize, isize),
     floor: bool,
-) -> (Grid<bool>, (usize, usize)) {
+) -> (Grid<bool>, (isize, isize)) {
     let (min_x, max_x, min_y, max_y) = input.iter().flat_map(|line| line.iter()).fold(
         (drop_pos.0, drop_pos.0, drop_pos.1, drop_pos.1),
         |(min_x, max_x, min_y, max_y), (x, y)| {
@@ -29,9 +30,10 @@ fn make_field(
     let (min_x, max_x, min_y, max_y) = if floor {
         let floor_y = max_y + 2;
         let drop = floor_y - drop_pos.1;
+        assert!(drop > 0);
         // open enough space to the sides for the mound
-        let min_x = drop_pos.0 - drop;
-        let max_x = drop_pos.0 + drop;
+        let min_x = min_x.min(drop_pos.0 - drop);
+        let max_x = max_x.max(drop_pos.0 + drop);
         // open space for the floor
         let max_y = max_y + 1;
         (min_x, max_x, min_y, max_y)
@@ -41,7 +43,7 @@ fn make_field(
         let max_x = max_x + 1;
         (min_x, max_x, min_y, max_y)
     };
-    // move drop pos to the relative place
+    // move drop pos to the relative position
     let drop_pos = (drop_pos.0 - min_x, drop_pos.1 - min_y);
 
     let mut field = Grid::new(
@@ -49,21 +51,20 @@ fn make_field(
         (max_y + 1 - min_y) as usize,
         false,
     );
+    dbg!(field.shape());
     for line in input {
-        for i in 0..line.len() - 1 {
-            let (x1, y1) = line[i];
-            let (x2, y2) = line[i + 1];
+        for [(x1, y1), (x2, y2)] in line.array_windows().copied() {
             if y1 == y2 {
                 let y = y1 - min_y;
                 for x in x1.min(x2)..=x1.max(x2) {
                     let x = x - min_x;
-                    field[(x, y)] = true;
+                    field[(x as usize, y as usize)] = true;
                 }
             } else if x1 == x2 {
                 let x = x1 - min_x;
                 for y in y1.min(y2)..=y1.max(y2) {
                     let y = y - min_y;
-                    field[(x, y)] = true;
+                    field[(x as usize, y as usize)] = true;
                 }
             } else {
                 panic!("Line is not orthogonal");
@@ -75,21 +76,29 @@ fn make_field(
 
 pub fn part1(input: &str) -> usize {
     let input = parse_input(input);
-    let drop_pos: (usize, usize) = (500, 0);
+    let drop_pos: (isize, isize) = (500, 0);
     let (mut field, drop_pos) = make_field(input, drop_pos, false);
 
     let mut deposited_grains = 0;
     'grains: loop {
         // drop a grain
         let mut pos = drop_pos;
-        if field[pos] == true {
+        if field[(pos.0 as usize, pos.1 as usize)] == true {
             panic!("Sand filled to the drop start");
         }
         'fall: loop {
             match (
-                field.get(pos.0 - 1, pos.1 + 1),
-                field.get(pos.0, pos.1 + 1),
-                field.get(pos.0 + 1, pos.1 + 1),
+                if pos.0 > 0 {
+                    field.get((pos.0 - 1) as usize, (pos.1 + 1) as usize)
+                } else {
+                    None
+                },
+                field.get(pos.0 as usize, (pos.1 + 1) as usize),
+                if pos.0 > 0 {
+                    field.get((pos.0 + 1) as usize, (pos.1 + 1) as usize)
+                } else {
+                    None
+                },
             ) {
                 (None, None, None) => break 'grains, // reached the bottom, fall infinitely
 
@@ -105,7 +114,7 @@ pub fn part1(input: &str) -> usize {
 
                 (Some(true) | None, Some(true), Some(true) | None) => {
                     deposited_grains += 1;
-                    field[pos] = true;
+                    field[(pos.0 as usize, pos.1 as usize)] = true;
                     break 'fall;
                 } // rest
 
@@ -119,21 +128,29 @@ pub fn part1(input: &str) -> usize {
 
 pub fn part2(input: &str) -> usize {
     let input = parse_input(input);
-    let drop_pos: (usize, usize) = (500, 0);
+    let drop_pos: (isize, isize) = (500, 0);
     let (mut field, drop_pos) = make_field(input, drop_pos, true);
 
     let mut deposited_grains = 0;
     'grains: loop {
         // drop a grain
         let mut pos = drop_pos;
-        if field[pos] == true {
+        if field[(pos.0 as usize, pos.1 as usize)] == true {
             break 'grains;
         }
         'fall: loop {
             match (
-                field.get(pos.0 - 1, pos.1 + 1),
-                field.get(pos.0, pos.1 + 1),
-                field.get(pos.0 + 1, pos.1 + 1),
+                if pos.0 > 0 {
+                    field.get((pos.0 - 1) as usize, (pos.1 + 1) as usize)
+                } else {
+                    None
+                },
+                field.get(pos.0 as usize, (pos.1 + 1) as usize),
+                if pos.0 > 0 {
+                    field.get((pos.0 + 1) as usize, (pos.1 + 1) as usize)
+                } else {
+                    None
+                },
             ) {
                 (_, Some(false), _) => pos.1 += 1, // drop down
                 (Some(false), Some(true), _) => {
@@ -147,7 +164,7 @@ pub fn part2(input: &str) -> usize {
 
                 (Some(true) | None, Some(true) | None, Some(true) | None) => {
                     deposited_grains += 1;
-                    field[pos] = true;
+                    field[(pos.0 as usize, pos.1 as usize)] = true;
                     break 'fall;
                 } // rest
 

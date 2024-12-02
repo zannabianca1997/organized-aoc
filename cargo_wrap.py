@@ -28,10 +28,18 @@ class Day:
     part2: None | Part = None
 
     @staticmethod
-    def parse(path: Path) -> "Day | None":
+    def parse(year: int, day: int, path: Path) -> "Day | None":
         try:
             manifest = toml.load(path.joinpath("Cargo.toml"))
-        except toml.TomlDecodeError:
+        except toml.TomlDecodeError as err:
+            logger.getChild(f"{year}.{day}").warning(
+                "Error while parsing Cargo.toml", exc_info=True
+            )
+            return None
+        except FileNotFoundError as err:
+            logger.getChild(f"{year}.{day}").warning(
+                "Cannot find Cargo.toml", exc_info=True
+            )
             return None
 
         name = manifest["package"]["name"]
@@ -39,7 +47,7 @@ class Day:
         try:
             aoc = manifest["package"]["metadata"]["aoc"]
         except KeyError:
-            return Day(path)
+            return Day(name, path)
 
         try:
             part1 = aoc["part1"]
@@ -88,7 +96,7 @@ def update(
                 except ValueError:
                     continue
                 if 0 < day <= 25:
-                    sol = Day.parse(day_dir)
+                    sol = Day.parse(year, day, day_dir)
                     if day is not None:
                         if year not in solutions_pkgs:
                             solutions_pkgs[year] = {}

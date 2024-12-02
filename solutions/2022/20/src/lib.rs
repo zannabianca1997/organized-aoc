@@ -8,7 +8,7 @@ fn parse_input(input: &str) -> Box<[isize]> {
 
 pub fn part1(input: &str) -> isize {
     let input = parse_input(input);
-    let mut list: Box<[_]> = input.into_iter().map(|v| (*v, true)).collect();
+    let mut list: Box<[_]> = input.iter().map(|v| (*v, true)).collect();
 
     // decrypt
     for i in 0..list.len() {
@@ -41,7 +41,7 @@ pub fn part1(input: &str) -> isize {
 pub fn part2(input: &str) -> isize {
     let input = parse_input(input);
     let mut list: Vec<_> = input
-        .into_iter()
+        .iter()
         .enumerate()
         .map(|v| (v.0, v.1 * 811589153))
         .collect();
