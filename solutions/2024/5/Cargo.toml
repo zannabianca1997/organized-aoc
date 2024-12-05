@@ -3,6 +3,9 @@ name = "aoc_2024_5"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+slice_internals = []
+
 [package.metadata.aoc.part1]
 fun = "part1"
 

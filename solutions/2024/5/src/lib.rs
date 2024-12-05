@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "slice_internals", feature(slice_internals))]
+
 use std::cmp::Ordering;
 
 use fnv::FnvHashSet;
@@ -38,7 +40,10 @@ pub fn part2(input: &str) -> usize {
     let (rules, updates) = parse(input);
     let rules: FnvHashSet<_> = rules.collect();
     let order_by_rules = comparing_fn(&rules);
-    let sort_by_rules = sorting_fn(&rules);
+    #[cfg(feature = "slice_internals")]
+    let mut is_less_fn = is_less_fn(&rules);
+    #[cfg(not(feature = "slice_internals"))]
+    let sorting_fn = sorting_fn(&rules);
     updates
         .filter_map(|update| {
             let update: Box<[_]> = update.collect();
@@ -47,7 +52,10 @@ pub fn part2(input: &str) -> usize {
             }
             // This is an unordered line
             let mut update = update;
-            update.sort_unstable_by(sort_by_rules);
+            #[cfg(feature = "slice_internals")]
+            core::slice::sort::unstable::sort(&mut *update, &mut is_less_fn);
+            #[cfg(not(feature = "slice_internals"))]
+            update.sort_unstable_by(sorting_fn);
 
             Some(update[update.len() / 2])
         })
@@ -57,6 +65,13 @@ pub fn part2(input: &str) -> usize {
 fn comparing_fn(rules: &FnvHashSet<(usize, usize)>) -> impl Fn(&usize, &usize) -> bool + Copy + '_ {
     |a, b| !rules.contains(&(*b, *a))
 }
+
+#[cfg(feature = "slice_internals")]
+fn is_less_fn(rules: &FnvHashSet<(usize, usize)>) -> impl Fn(&usize, &usize) -> bool + Copy + '_ {
+    |a, b| rules.contains(&(*a, *b))
+}
+
+#[cfg(not(feature = "slice_internals"))]
 fn sorting_fn(
     rules: &FnvHashSet<(usize, usize)>,
 ) -> impl Fn(&usize, &usize) -> Ordering + Copy + '_ {
