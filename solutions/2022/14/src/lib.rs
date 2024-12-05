@@ -47,11 +47,10 @@ fn make_field(
     let drop_pos = (drop_pos.0 - min_x, drop_pos.1 - min_y);
 
     let mut field = Grid::new(
-        (max_x + 1 - min_x) as usize,
         (max_y + 1 - min_y) as usize,
+        (max_x + 1 - min_x) as usize,
         false,
     );
-    dbg!(field.shape());
     for line in input {
         for [(x1, y1), (x2, y2)] in line.array_windows().copied() {
             if y1 == y2 {
