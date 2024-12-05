@@ -10,3 +10,4 @@ fun = "part1"
 fun = "part2"
 
 [dependencies]
+fnv = "1.0.7"
