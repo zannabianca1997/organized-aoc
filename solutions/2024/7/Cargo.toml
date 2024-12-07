@@ -1,5 +1,5 @@
 [package]
-name = "aoc_2024_6"
+name = "aoc_2024_7"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,4 +10,3 @@ fun = "part1"
 fun = "part2"
 
 [dependencies]
-grid = { path = "../../../commons/grid" }
