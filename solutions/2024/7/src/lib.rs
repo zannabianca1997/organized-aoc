@@ -54,9 +54,13 @@ fn can_be_built_with_concat(target: usize, current: usize, operands: &[usize]) -
         || can_be_built_with_concat(target, concat(current, *next), operands)
 }
 
+#[inline(always)]
 fn concat(a: usize, b: usize) -> usize {
-    let b_digits = b.checked_ilog10().unwrap_or(0) + 1;
-    a * 10usize.pow(b_digits) + b
+    let mut ten = 1;
+    while ten < b {
+        ten *= 10
+    }
+    a * ten + b
 }
 
 #[cfg(test)]
