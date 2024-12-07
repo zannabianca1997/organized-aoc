@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+#[derive(Debug, Clone)]
 pub struct Grid<T> {
     height: usize,
     width: usize,
@@ -28,6 +29,34 @@ impl<T> Grid<T> {
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.memory.iter()
+    }
+
+    pub fn map_ref<T2>(&self, f: impl Fn(&T) -> T2) -> Grid<T2> {
+        let Self {
+            height,
+            width,
+            memory,
+        } = self;
+        let memory = memory.iter().map(f).collect();
+        Grid {
+            height: *height,
+            width: *width,
+            memory,
+        }
+    }
+
+    pub fn map<T2>(self, f: impl Fn(T) -> T2) -> Grid<T2> {
+        let Self {
+            height,
+            width,
+            memory,
+        } = self;
+        let memory = memory.into_vec().into_iter().map(f).collect();
+        Grid {
+            height,
+            width,
+            memory,
+        }
     }
 }
 

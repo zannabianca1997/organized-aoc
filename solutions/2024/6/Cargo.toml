@@ -1,0 +1,16 @@
+[package]
+name = "aoc_2024_6"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+slice_internals = []
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+[dependencies]
+grid = { path = "../../../commons/grid" }
