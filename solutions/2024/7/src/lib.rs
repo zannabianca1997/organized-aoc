@@ -56,8 +56,11 @@ fn can_be_built_with_concat(target: usize, current: usize, operands: &[usize]) -
 
 #[inline(always)]
 fn concat(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a * 10;
+    }
     let mut ten = 1;
-    while ten < b {
+    while ten <= b {
         ten *= 10
     }
     a * ten + b
@@ -65,6 +68,8 @@ fn concat(a: usize, b: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use crate::{can_be_built, can_be_built_with_concat, parse};
+
     static EXAMPLES: &[(&str, bool, bool)] = &[
         ("190: 10 19", true, true),
         ("3267: 81 40 27", true, true),
@@ -76,6 +81,25 @@ mod tests {
         ("21037: 9 7 18 13", false, false),
         ("292: 11 6 16 20", true, true),
     ];
+
+    #[test]
+    fn p1() {
+        for (line, res, _) in EXAMPLES {
+            let (target, operands) = parse(&line).next().unwrap();
+            assert_eq!(can_be_built(target, operands[0], &operands[1..]), *res)
+        }
+    }
+
+    #[test]
+    fn p2() {
+        for (line, _, res) in EXAMPLES {
+            let (target, operands) = parse(&line).next().unwrap();
+            assert_eq!(
+                can_be_built_with_concat(target, operands[0], &operands[1..]),
+                *res
+            )
+        }
+    }
 
     mod concat {
         use super::super::concat;

@@ -158,23 +158,6 @@ def update(
             print(";})", file=main_rs, end="")
         print(";},::std::env::args_os())}", file=main_rs, end="")
 
-    logger.info("Updating workspace Cargo.toml")
-    workspace_content = toml.load(workspace)
-    members: list[str] = workspace_content["workspace"]["members"]
-    new_members: list[str] = []
-    for member in members:
-        if solutions not in workspace.parent.joinpath(member).resolve().parents:
-            new_members.append(member)
-    for sols in solutions_pkgs.values():
-        for pkg in sols.values():
-            new_members.append(str(pathdiff(pkg.path, workspace.parent)))
-    library_str = str(pathdiff(library, workspace.parent))
-    if library_str not in new_members:
-        new_members.append(library_str)
-    workspace_content["workspace"]["members"] = new_members
-    with open(workspace, "w") as workspace_manifest:
-        toml.dump(workspace_content, workspace_manifest)
-
 
 if __name__ == "__main__":
     from logging import basicConfig, INFO

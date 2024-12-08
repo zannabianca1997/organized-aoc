@@ -1,5 +1,5 @@
 [package]
-name = "aoc_2015_"
+name = "aoc_2024_8"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,5 +9,5 @@ fun = "part1"
 [package.metadata.aoc.part2]
 fun = "part2"
 
-
 [dependencies]
+fnv = "1.0.7"
