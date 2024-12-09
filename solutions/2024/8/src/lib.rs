@@ -1,5 +1,3 @@
-use std::num::NonZeroU8;
-
 pub fn antennas(input: &str) -> impl Iterator<Item = (usize, usize, char)> + '_ {
     input.lines().enumerate().flat_map(|(y, line)| {
         line.chars()
