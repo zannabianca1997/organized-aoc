@@ -8,8 +8,8 @@ struct Block(NonMaxU16);
 fn parse1(input: &str) -> Box<[Option<Block>]> {
     input
         .trim()
-        .chars()
-        .map(|ch| ch as u8 - '0' as u8)
+        .bytes()
+        .map(|ch| ch - b'0')
         .scan((true, 0), |(file, id), len| {
             let res = if *file {
                 let fid = *id;
@@ -79,43 +79,54 @@ fn parse2(input: &str) -> (Vec<File>, Vec<Space>) {
     let mut files = vec![];
     let mut spaces = vec![];
     let mut pos = 0usize;
-    input
-        .trim()
-        .chars()
-        .map(|ch| ch as u8 - b'0')
-        .enumerate()
-        .for_each(|(block_num, len)| {
-            let res = if block_num % 2 == 0 {
-                files.push(File {
-                    len,
-                    id: (block_num / 2) as _,
-                    pos,
-                });
-            } else {
-                spaces.push(Space { len, pos })
-            };
-            pos += len as usize;
-            res
-        });
+    for (block_num, len) in input.trim().bytes().map(|ch| ch - b'0').enumerate() {
+        let res = if block_num % 2 == 0 {
+            files.push(File {
+                len,
+                id: (block_num / 2) as _,
+                pos,
+            });
+        } else {
+            spaces.push(Space { len, pos })
+        };
+        pos += len as usize;
+        res
+    }
     (files, spaces)
 }
 
 pub fn part2(input: &str) -> usize {
     let (files, mut spaces) = parse2(input);
+    let mut first_space = 0;
+    let mut last_space = spaces.len() - 1;
 
-    let files = files.into_iter().rev().map(|mut file| {
-        if let Some(space) = spaces
-            .iter_mut()
-            .skip_while(|s| s.len < file.len)
-            .take_while(|s| s.pos < file.pos)
-            .next()
+    let files = files.into_iter().rev().map(|file| {
+        while last_space >= first_space && spaces[first_space].len == 0 {
+            first_space += 1;
+        }
+        while last_space >= first_space
+            && (spaces[last_space].pos > file.pos || spaces[last_space].len == 0)
         {
-            file.pos = space.pos;
+            last_space -= 1;
+        }
+        if last_space < first_space {
+            return file;
+        }
+
+        if let Some(space) = spaces[first_space..=last_space]
+            .iter_mut()
+            .find(|s| s.len >= file.len)
+        {
+            let mut moved_file = file;
+            moved_file.pos = space.pos;
 
             space.len -= file.len;
             space.pos += file.len as usize;
+
+            moved_file
+        } else {
+            file
         }
-        file
     });
 
     files
@@ -127,40 +138,6 @@ pub fn part2(input: &str) -> usize {
             f.id as usize * file_total
         })
         .sum()
-}
-
-#[cfg(test)]
-fn print_files<'a>(
-    files: impl IntoIterator<Item = &'a File>,
-    spaces: impl IntoIterator<Item = &'a Space>,
-) {
-    use core::str;
-
-    let files: Vec<_> = files.into_iter().collect();
-    let spaces: Vec<_> = spaces.into_iter().collect();
-
-    let len = files
-        .iter()
-        .map(|f| f.pos + f.len as usize)
-        .chain(spaces.iter().map(|s| s.pos + s.len as usize))
-        .max()
-        .unwrap();
-
-    let mut printing = vec![b'x'; len].into_boxed_slice();
-
-    for File { len, id, pos } in files {
-        let id = *id as u8 + b'0';
-        for c_pos in *pos..(*pos + *len as usize) {
-            printing[c_pos] = id
-        }
-    }
-    for Space { len, pos } in spaces {
-        for c_pos in *pos..(*pos + *len as usize) {
-            printing[c_pos] = b'.'
-        }
-    }
-
-    println!("{}", str::from_utf8(&printing).unwrap())
 }
 
 #[cfg(test)]
