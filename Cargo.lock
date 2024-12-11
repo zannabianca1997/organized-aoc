@@ -333,6 +333,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc_2024_11"
+version = "0.1.0"
+dependencies = [
+ "fnv",
+]
+
+[[package]]
 name = "aoc_2024_2"
 version = "0.1.0"
 
@@ -647,6 +654,7 @@ dependencies = [
  "aoc_2023_2",
  "aoc_2024_1",
  "aoc_2024_10",
+ "aoc_2024_11",
  "aoc_2024_2",
  "aoc_2024_3",
  "aoc_2024_4",
