@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::BuildHasher};
+use std::{borrow::Cow, mem};
 
 use fnv::FnvHashMap;
 
@@ -10,11 +10,12 @@ pub fn parse(input: &str) -> FnvHashMap<usize, usize> {
     stones
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part<const N: usize>(input: &str) -> usize {
     let mut stones = parse(input);
-    for _ in 0..25 {
-        let mut new_stones = FnvHashMap::default();
-        for (number_written, count) in stones {
+    let mut new_stones = FnvHashMap::default();
+    for _ in 0..N {
+        new_stones.clear();
+        for (&number_written, &count) in stones.iter() {
             if number_written == 0 {
                 *new_stones.entry(1).or_insert(0) += count;
             } else if digits(number_written) % 2 == 0 {
@@ -25,28 +26,16 @@ pub fn part1(input: &str) -> usize {
                 *new_stones.entry(number_written * 2024).or_insert(0) += count;
             }
         }
-        stones = new_stones
+        mem::swap(&mut stones, &mut new_stones);
     }
     stones.values().sum()
 }
+
+pub fn part1(input: &str) -> usize {
+    part::<25>(input)
+}
 pub fn part2(input: &str) -> usize {
-    let mut stones = parse(input);
-    for _ in 0..75 {
-        let mut new_stones = FnvHashMap::default();
-        for (number_written, count) in stones {
-            if number_written == 0 {
-                *new_stones.entry(1).or_insert(0) += count;
-            } else if digits(number_written) % 2 == 0 {
-                let (a, b) = split(number_written);
-                *new_stones.entry(a).or_insert(0) += count;
-                *new_stones.entry(b).or_insert(0) += count;
-            } else {
-                *new_stones.entry(number_written * 2024).or_insert(0) += count;
-            }
-        }
-        stones = new_stones
-    }
-    stones.values().sum()
+    part::<75>(input)
 }
 
 #[inline(always)]
