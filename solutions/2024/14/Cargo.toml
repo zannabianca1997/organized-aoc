@@ -1,0 +1,14 @@
+[package]
+name = "aoc_2024_14"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1::<101,103,100>"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+[dependencies]
+lazy-regex = "3.3.0"
+grid = { path = "../../../commons/grid" }
