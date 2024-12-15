@@ -74,24 +74,23 @@ pub fn print_tree<const WIDTH: i64, const HEIGHT: i64>(
     }
 }
 
-pub fn part2(input: &str) -> String {
+pub fn part2(input: &str) -> u64 {
     let bots: Box<[_]> = parse(input).collect();
 
     const WIDTH: i64 = 101;
     const HEIGHT: i64 = 103;
 
-    let mut f = BufWriter::new(File::create("/tmp/2024_14_trees.txt").unwrap());
-
-    writeln!(f, "Total possible trees: {}", WIDTH * HEIGHT).unwrap();
-
     (0..WIDTH * HEIGHT)
-        .inspect(|sim_len| {
-            writeln!(f).unwrap();
-            print_tree::<WIDTH, HEIGHT>(&mut f, &bots, *sim_len);
-        })
-        .count();
+        .map(|sim_len| {
+            let (a, b, c, d) = quadrants::<WIDTH, HEIGHT>(&bots, sim_len);
+            let mut quadrants = [a, b, c, d];
+            quadrants.sort();
 
-    String::from("Human needed")
+            (sim_len, quadrants[3] - quadrants[2])
+        })
+        .max_by_key(|(_, diff)| *diff)
+        .unwrap()
+        .0 as _
 }
 
 #[test]
