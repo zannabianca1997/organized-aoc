@@ -1,0 +1,14 @@
+[package]
+name = "aoc_2024_18"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.aoc.part1]
+fun = "part1"
+
+[package.metadata.aoc.part2]
+fun = "part2"
+
+[dependencies]
+fnv = "1.0.7"
+grid = { path = "../../../commons/grid" }

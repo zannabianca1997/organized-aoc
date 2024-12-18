@@ -380,6 +380,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc_2024_18"
+version = "0.1.0"
+dependencies = [
+ "fnv",
+ "grid 0.1.0",
+]
+
+[[package]]
 name = "aoc_2024_2"
 version = "0.1.0"
 
@@ -721,6 +729,7 @@ dependencies = [
  "aoc_2024_15",
  "aoc_2024_16",
  "aoc_2024_17",
+ "aoc_2024_18",
  "aoc_2024_2",
  "aoc_2024_3",
  "aoc_2024_4",
